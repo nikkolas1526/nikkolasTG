@@ -1,5 +1,6 @@
 dist/build-stats.json
 node_modules
+dist
 .cache
 .env
 src/lib/gramjs/build/

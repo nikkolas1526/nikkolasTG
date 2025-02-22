@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  left: 4.75rem;
+
   z-index: var(--z-forum-panel);
   height: 100%;
   background-color: var(--color-background);
@@ -33,6 +33,7 @@
     position: relative;
     overflow-x: hidden;
     padding-top: 0 !important;
+    padding-left: 10px;
   }
 
   :global(.HeaderActions) {
@@ -67,7 +68,8 @@
 .info {
   margin-left: 0.4375rem;
   min-width: 0;
-  width: 100%;
+  width: 235px;
+  padding-left: 0;
   cursor: var(--custom-cursor, pointer);
 
   :global(.info) {

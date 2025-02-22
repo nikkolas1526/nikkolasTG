@@ -1,19 +1,19 @@
-import type { FC, TeactNode } from '../../lib/teact/teact';
-import React, { memo, useEffect, useRef } from '../../lib/teact/teact';
+import type { FC, TeactNode } from "../../lib/teact/teact";
+import React, { memo, useEffect, useRef } from "../../lib/teact/teact";
 
-import type { MenuItemContextAction } from './ListItem';
+import type { MenuItemContextAction } from "./ListItem";
 
-import animateHorizontalScroll from '../../util/animateHorizontalScroll';
-import buildClassName from '../../util/buildClassName';
-import { IS_ANDROID, IS_IOS } from '../../util/windowEnvironment';
+import animateHorizontalScroll from "../../util/animateHorizontalScroll";
+import buildClassName from "../../util/buildClassName";
+import { IS_ANDROID, IS_IOS } from "../../util/windowEnvironment";
 
-import useHorizontalScroll from '../../hooks/useHorizontalScroll';
-import useOldLang from '../../hooks/useOldLang';
-import usePreviousDeprecated from '../../hooks/usePreviousDeprecated';
+import useHorizontalScroll from "../../hooks/useHorizontalScroll";
+import useOldLang from "../../hooks/useOldLang";
+import usePreviousDeprecated from "../../hooks/usePreviousDeprecated";
 
-import Tab from './Tab';
+import Tab from "./Tab";
 
-import './TabList.scss';
+import "./TabList.scss";
 
 export type TabWithProperties = {
   id?: number;
@@ -38,8 +38,12 @@ const TAB_SCROLL_THRESHOLD_PX = 16;
 const SCROLL_DURATION = IS_IOS ? 450 : IS_ANDROID ? 400 : 300;
 
 const TabList: FC<OwnProps> = ({
-  tabs, activeTab, onSwitchTab,
-  contextRootElementSelector, className, tabClassName,
+  tabs,
+  activeTab,
+  onSwitchTab,
+  contextRootElementSelector,
+  className,
+  tabClassName,
 }) => {
   // eslint-disable-next-line no-null/no-null
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,13 +59,19 @@ const TabList: FC<OwnProps> = ({
       return;
     }
 
-    const activeTabElement = container.childNodes[activeTab] as HTMLElement | null;
+    const activeTabElement = container.childNodes[
+      activeTab
+    ] as HTMLElement | null;
     if (!activeTabElement) {
       return;
     }
 
-    const { offsetLeft: activeTabOffsetLeft, offsetWidth: activeTabOffsetWidth } = activeTabElement;
-    const newLeft = activeTabOffsetLeft - (offsetWidth / 2) + (activeTabOffsetWidth / 2);
+    const {
+      offsetLeft: activeTabOffsetLeft,
+      offsetWidth: activeTabOffsetWidth,
+    } = activeTabElement;
+    const newLeft =
+      activeTabOffsetLeft - offsetWidth / 2 + activeTabOffsetWidth / 2;
 
     // Prevent scrolling by only a couple of pixels, which doesn't look smooth
     if (Math.abs(newLeft - scrollLeft) < TAB_SCROLL_THRESHOLD_PX) {
@@ -75,9 +85,9 @@ const TabList: FC<OwnProps> = ({
 
   return (
     <div
-      className={buildClassName('TabList', 'no-scrollbar', className)}
+      className={buildClassName("TabList", "no-scrollbar", className)}
       ref={containerRef}
-      dir={lang.isRtl ? 'rtl' : undefined}
+      dir={lang.isRtl ? "rtl" : undefined}
     >
       {tabs.map((tab, i) => (
         <Tab

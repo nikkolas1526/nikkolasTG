@@ -1,30 +1,66 @@
-.TabList {
-  position: sticky;
-  top: 0;
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: nowrap;
-  box-shadow: 0 2px 2px var(--color-light-shadow);
-  background-color: var(--color-background);
-  overflow-x: auto;
-  overflow-y: hidden;
+@media (max-width: 1000px) {
+  .TabList {
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: nowrap;
+    box-shadow: 0 2px 2px var(--color-light-shadow);
+    background-color: var(--color-background);
+    overflow-x: auto;
+    overflow-y: hidden;
 
-  font-size: 1rem;
+    font-size: 1rem;
 
-  padding-inline: 0.5rem;
+    padding-inline: 0.5rem;
 
-  scrollbar-width: none;
-  scrollbar-color: rgba(0, 0, 0, 0);
+    scrollbar-width: none;
+    scrollbar-color: rgba(0, 0, 0, 0);
 
-  &::-webkit-scrollbar {
-    height: 0;
+    &::-webkit-scrollbar {
+      height: 0;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0);
+      // `box-shadow` prevents repaint on macOS when hovering out of scrollable container
+      box-shadow: 0 0 1px rgba(255, 255, 255, 0.01);
+    }
   }
+}
+@media (min-width: 1000px) {
+  .TabList {
+    position: absolute;
+    top: 0;
+    height: 100vh;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
+    flex-wrap: nowrap;
 
-  &::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0);
-    // `box-shadow` prevents repaint on macOS when hovering out of scrollable container
-    box-shadow: 0 0 1px rgba(255, 255, 255, 0.01);
+    background-color: rgb(33, 33, 33);
+    color: rgb(113, 117, 121);
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 90px;
+    font-size: 1rem;
+
+    z-index: 100;
+    scrollbar-width: none;
+    scrollbar-color: rgba(0, 0, 0, 0);
+
+    &::-webkit-scrollbar {
+      height: 0;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(73, 73, 73, 0);
+
+      box-shadow: 0 0 1px rgba(255, 255, 255, 0.01);
+    }
   }
 }

@@ -12,6 +12,9 @@
   transition: opacity 0.2s ease-in-out;
 
   animation: fadeIn 0.2s ease-in-out;
+  @media (min-width: 1000px) {
+    padding-left: 100px;
+  }
 }
 
 .closing {

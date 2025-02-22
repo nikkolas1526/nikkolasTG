@@ -14,7 +14,7 @@
     &-to {
       position: absolute;
       top: 0;
-      left: 0;
+      left: 90px;
     }
 
     &-from {
@@ -146,7 +146,8 @@
 
       opacity: 1;
 
-      animation: fade-out-opacity var(--slide-transition), slide-fade-out-move var(--slide-transition);
+      animation: fade-out-opacity var(--slide-transition),
+        slide-fade-out-move var(--slide-transition);
     }
 
     > .Transition_slide-to {
@@ -155,7 +156,8 @@
 
       opacity: 0;
 
-      animation: fade-in-opacity var(--slide-transition), slide-fade-in-move var(--slide-transition);
+      animation: fade-in-opacity var(--slide-transition),
+        slide-fade-in-move var(--slide-transition);
     }
   }
 
@@ -165,8 +167,7 @@
 
       opacity: 1;
 
-      animation:
-        fade-in-backwards-opacity var(--slide-transition),
+      animation: fade-in-backwards-opacity var(--slide-transition),
         slide-fade-in-backwards-move var(--slide-transition);
     }
 
@@ -175,8 +176,7 @@
 
       opacity: 0;
 
-      animation:
-        fade-out-backwards-opacity var(--slide-transition),
+      animation: fade-out-backwards-opacity var(--slide-transition),
         slide-fade-out-backwards-move var(--slide-transition);
     }
   }
@@ -196,7 +196,8 @@
 
       opacity: 0;
 
-      animation: fade-in-opacity var(--slide-transition), slide-fade-in-move-android var(--slide-transition);
+      animation: fade-in-opacity var(--slide-transition),
+        slide-fade-in-move-android var(--slide-transition);
     }
   }
 
@@ -214,8 +215,7 @@
 
       opacity: 1;
 
-      animation:
-        fade-in-backwards-opacity var(--slide-transition),
+      animation: fade-in-backwards-opacity var(--slide-transition),
         slide-fade-in-backwards-move-android var(--slide-transition);
     }
   }
@@ -245,13 +245,15 @@
     > .Transition_slide-from {
       transform: scale(1);
 
-      animation: fade-in-backwards-opacity 0.1s ease, zoom-fade-in-backwards-move 0.15s ease;
+      animation: fade-in-backwards-opacity 0.1s ease,
+        zoom-fade-in-backwards-move 0.15s ease;
     }
 
     > .Transition_slide-to {
       transform: scale(0.95);
 
-      animation: fade-out-backwards-opacity 0.15s ease, zoom-fade-out-backwards-move 0.15s ease;
+      animation: fade-out-backwards-opacity 0.15s ease,
+        zoom-fade-out-backwards-move 0.15s ease;
     }
   }
 

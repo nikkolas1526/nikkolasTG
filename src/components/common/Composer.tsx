@@ -1,8 +1,13 @@
-import type { FC } from '../../lib/teact/teact';
+import type { FC } from "../../lib/teact/teact";
 import React, {
-  memo, useEffect, useMemo, useRef, useSignal, useState,
-} from '../../lib/teact/teact';
-import { getActions, getGlobal, withGlobal } from '../../global';
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useSignal,
+  useState,
+} from "../../lib/teact/teact";
+import { getActions, getGlobal, withGlobal } from "../../global";
 
 import type {
   ApiAttachment,
@@ -28,10 +33,8 @@ import type {
   ApiUser,
   ApiVideo,
   ApiWebPage,
-} from '../../api/types';
-import type {
-  GlobalState, TabState,
-} from '../../global/types';
+} from "../../api/types";
+import type { GlobalState, TabState } from "../../global/types";
 import type {
   IAnchorPosition,
   InlineBotSettings,
@@ -39,8 +42,8 @@ import type {
   MessageList,
   MessageListType,
   ThreadId,
-} from '../../types';
-import { MAIN_THREAD_ID } from '../../api/types';
+} from "../../types";
+import { MAIN_THREAD_ID } from "../../api/types";
 
 import {
   BASE_EMOJI_KEYWORD_LANG,
@@ -52,8 +55,11 @@ import {
   SCHEDULED_WHEN_ONLINE,
   SEND_MESSAGE_ACTION_INTERVAL,
   SERVICE_NOTIFICATIONS_USER_ID,
-} from '../../config';
-import { requestMeasure, requestNextMutation } from '../../lib/fasterdom/fasterdom';
+} from "../../config";
+import {
+  requestMeasure,
+  requestNextMutation,
+} from "../../lib/fasterdom/fasterdom";
 import {
   canEditMedia,
   getAllowedAttachmentOptions,
@@ -65,7 +71,7 @@ import {
   isSameReaction,
   isSystemBot,
   isUserId,
-} from '../../global/helpers';
+} from "../../global/helpers";
 import {
   selectBot,
   selectCanPlayAnimatedEmojis,
@@ -96,87 +102,95 @@ import {
   selectTopicFromMessage,
   selectUser,
   selectUserFullInfo,
-} from '../../global/selectors';
-import { selectCurrentLimit } from '../../global/selectors/limits';
-import buildClassName from '../../util/buildClassName';
-import { formatMediaDuration, formatVoiceRecordDuration } from '../../util/dates/dateFormat';
-import { processDeepLink } from '../../util/deeplink';
-import { tryParseDeepLink } from '../../util/deepLinkParser';
-import deleteLastCharacterOutsideSelection from '../../util/deleteLastCharacterOutsideSelection';
-import { processMessageInputForCustomEmoji } from '../../util/emoji/customEmojiManager';
-import focusEditableElement from '../../util/focusEditableElement';
-import { MEMO_EMPTY_ARRAY } from '../../util/memo';
-import parseHtmlAsFormattedText from '../../util/parseHtmlAsFormattedText';
-import { insertHtmlInSelection } from '../../util/selection';
-import { getServerTime } from '../../util/serverTime';
-import { IS_IOS, IS_VOICE_RECORDING_SUPPORTED } from '../../util/windowEnvironment';
-import windowSize from '../../util/windowSize';
-import applyIosAutoCapitalizationFix from '../middle/composer/helpers/applyIosAutoCapitalizationFix';
-import buildAttachment, { prepareAttachmentsToSend } from '../middle/composer/helpers/buildAttachment';
-import { buildCustomEmojiHtml } from '../middle/composer/helpers/customEmoji';
-import { isSelectionInsideInput } from '../middle/composer/helpers/selection';
-import { getPeerColorClass } from './helpers/peerColor';
-import renderText from './helpers/renderText';
-import { getTextWithEntitiesAsHtml } from './helpers/renderTextWithEntities';
+} from "../../global/selectors";
+import { selectCurrentLimit } from "../../global/selectors/limits";
+import buildClassName from "../../util/buildClassName";
+import {
+  formatMediaDuration,
+  formatVoiceRecordDuration,
+} from "../../util/dates/dateFormat";
+import { processDeepLink } from "../../util/deeplink";
+import { tryParseDeepLink } from "../../util/deepLinkParser";
+import deleteLastCharacterOutsideSelection from "../../util/deleteLastCharacterOutsideSelection";
+import { processMessageInputForCustomEmoji } from "../../util/emoji/customEmojiManager";
+import focusEditableElement from "../../util/focusEditableElement";
+import { MEMO_EMPTY_ARRAY } from "../../util/memo";
+import parseHtmlAsFormattedText from "../../util/parseHtmlAsFormattedText";
+import { insertHtmlInSelection } from "../../util/selection";
+import { getServerTime } from "../../util/serverTime";
+import {
+  IS_IOS,
+  IS_VOICE_RECORDING_SUPPORTED,
+} from "../../util/windowEnvironment";
+import windowSize from "../../util/windowSize";
+import applyIosAutoCapitalizationFix from "../middle/composer/helpers/applyIosAutoCapitalizationFix";
+import buildAttachment, {
+  prepareAttachmentsToSend,
+} from "../middle/composer/helpers/buildAttachment";
+import { buildCustomEmojiHtml } from "../middle/composer/helpers/customEmoji";
+import { isSelectionInsideInput } from "../middle/composer/helpers/selection";
+import { getPeerColorClass } from "./helpers/peerColor";
+import renderText from "./helpers/renderText";
+import { getTextWithEntitiesAsHtml } from "./helpers/renderTextWithEntities";
 
-import useInterval from '../../hooks/schedulers/useInterval';
-import useTimeout from '../../hooks/schedulers/useTimeout';
-import useContextMenuHandlers from '../../hooks/useContextMenuHandlers';
-import useDerivedState from '../../hooks/useDerivedState';
-import useEffectWithPrevDeps from '../../hooks/useEffectWithPrevDeps';
-import useFlag from '../../hooks/useFlag';
-import useGetSelectionRange from '../../hooks/useGetSelectionRange';
-import useLastCallback from '../../hooks/useLastCallback';
-import useOldLang from '../../hooks/useOldLang';
-import usePreviousDeprecated from '../../hooks/usePreviousDeprecated';
-import useSchedule from '../../hooks/useSchedule';
-import useSendMessageAction from '../../hooks/useSendMessageAction';
-import useShowTransitionDeprecated from '../../hooks/useShowTransitionDeprecated';
-import { useStateRef } from '../../hooks/useStateRef';
-import useSyncEffect from '../../hooks/useSyncEffect';
-import useAttachmentModal from '../middle/composer/hooks/useAttachmentModal';
-import useChatCommandTooltip from '../middle/composer/hooks/useChatCommandTooltip';
-import useClipboardPaste from '../middle/composer/hooks/useClipboardPaste';
-import useCustomEmojiTooltip from '../middle/composer/hooks/useCustomEmojiTooltip';
-import useDraft from '../middle/composer/hooks/useDraft';
-import useEditing from '../middle/composer/hooks/useEditing';
-import useEmojiTooltip from '../middle/composer/hooks/useEmojiTooltip';
-import useInlineBotTooltip from '../middle/composer/hooks/useInlineBotTooltip';
-import useMentionTooltip from '../middle/composer/hooks/useMentionTooltip';
-import useStickerTooltip from '../middle/composer/hooks/useStickerTooltip';
-import useVoiceRecording from '../middle/composer/hooks/useVoiceRecording';
+import useInterval from "../../hooks/schedulers/useInterval";
+import useTimeout from "../../hooks/schedulers/useTimeout";
+import useContextMenuHandlers from "../../hooks/useContextMenuHandlers";
+import useDerivedState from "../../hooks/useDerivedState";
+import useEffectWithPrevDeps from "../../hooks/useEffectWithPrevDeps";
+import useFlag from "../../hooks/useFlag";
+import useGetSelectionRange from "../../hooks/useGetSelectionRange";
+import useLastCallback from "../../hooks/useLastCallback";
+import useOldLang from "../../hooks/useOldLang";
+import usePreviousDeprecated from "../../hooks/usePreviousDeprecated";
+import useSchedule from "../../hooks/useSchedule";
+import useSendMessageAction from "../../hooks/useSendMessageAction";
+import useShowTransitionDeprecated from "../../hooks/useShowTransitionDeprecated";
+import { useStateRef } from "../../hooks/useStateRef";
+import useSyncEffect from "../../hooks/useSyncEffect";
+import useAttachmentModal from "../middle/composer/hooks/useAttachmentModal";
+import useChatCommandTooltip from "../middle/composer/hooks/useChatCommandTooltip";
+import useClipboardPaste from "../middle/composer/hooks/useClipboardPaste";
+import useCustomEmojiTooltip from "../middle/composer/hooks/useCustomEmojiTooltip";
+import useDraft from "../middle/composer/hooks/useDraft";
+import useEditing from "../middle/composer/hooks/useEditing";
+import useEmojiTooltip from "../middle/composer/hooks/useEmojiTooltip";
+import useInlineBotTooltip from "../middle/composer/hooks/useInlineBotTooltip";
+import useMentionTooltip from "../middle/composer/hooks/useMentionTooltip";
+import useStickerTooltip from "../middle/composer/hooks/useStickerTooltip";
+import useVoiceRecording from "../middle/composer/hooks/useVoiceRecording";
 
-import AttachmentModal from '../middle/composer/AttachmentModal.async';
-import AttachMenu from '../middle/composer/AttachMenu';
-import BotCommandMenu from '../middle/composer/BotCommandMenu.async';
-import BotKeyboardMenu from '../middle/composer/BotKeyboardMenu';
-import BotMenuButton from '../middle/composer/BotMenuButton';
-import ChatCommandTooltip from '../middle/composer/ChatCommandTooltip.async';
-import ComposerEmbeddedMessage from '../middle/composer/ComposerEmbeddedMessage';
-import CustomEmojiTooltip from '../middle/composer/CustomEmojiTooltip.async';
-import CustomSendMenu from '../middle/composer/CustomSendMenu.async';
-import DropArea, { DropAreaState } from '../middle/composer/DropArea.async';
-import EmojiTooltip from '../middle/composer/EmojiTooltip.async';
-import InlineBotTooltip from '../middle/composer/InlineBotTooltip.async';
-import MentionTooltip from '../middle/composer/MentionTooltip.async';
-import MessageInput from '../middle/composer/MessageInput';
-import PollModal from '../middle/composer/PollModal.async';
-import SendAsMenu from '../middle/composer/SendAsMenu.async';
-import StickerTooltip from '../middle/composer/StickerTooltip.async';
-import SymbolMenuButton from '../middle/composer/SymbolMenuButton';
-import WebPagePreview from '../middle/composer/WebPagePreview';
-import MessageEffect from '../middle/message/MessageEffect';
-import ReactionSelector from '../middle/message/reactions/ReactionSelector';
-import Button from '../ui/Button';
-import ResponsiveHoverButton from '../ui/ResponsiveHoverButton';
-import Spinner from '../ui/Spinner';
-import Avatar from './Avatar';
-import Icon from './icons/Icon';
-import ReactionAnimatedEmoji from './reactions/ReactionAnimatedEmoji';
+import AttachmentModal from "../middle/composer/AttachmentModal.async";
+import AttachMenu from "../middle/composer/AttachMenu";
+import BotCommandMenu from "../middle/composer/BotCommandMenu.async";
+import BotKeyboardMenu from "../middle/composer/BotKeyboardMenu";
+import BotMenuButton from "../middle/composer/BotMenuButton";
+import ChatCommandTooltip from "../middle/composer/ChatCommandTooltip.async";
+import ComposerEmbeddedMessage from "../middle/composer/ComposerEmbeddedMessage";
+import CustomEmojiTooltip from "../middle/composer/CustomEmojiTooltip.async";
+import CustomSendMenu from "../middle/composer/CustomSendMenu.async";
+import DropArea, { DropAreaState } from "../middle/composer/DropArea.async";
+import EmojiTooltip from "../middle/composer/EmojiTooltip.async";
+import InlineBotTooltip from "../middle/composer/InlineBotTooltip.async";
+import MentionTooltip from "../middle/composer/MentionTooltip.async";
+import MessageInput from "../middle/composer/MessageInput";
+import PollModal from "../middle/composer/PollModal.async";
+import SendAsMenu from "../middle/composer/SendAsMenu.async";
+import StickerTooltip from "../middle/composer/StickerTooltip.async";
+import SymbolMenuButton from "../middle/composer/SymbolMenuButton";
+import WebPagePreview from "../middle/composer/WebPagePreview";
+import MessageEffect from "../middle/message/MessageEffect";
+import ReactionSelector from "../middle/message/reactions/ReactionSelector";
+import Button from "../ui/Button";
+import ResponsiveHoverButton from "../ui/ResponsiveHoverButton";
+import Spinner from "../ui/Spinner";
+import Avatar from "./Avatar";
+import Icon from "./icons/Icon";
+import ReactionAnimatedEmoji from "./reactions/ReactionAnimatedEmoji";
 
-import './Composer.scss';
+import "./Composer.scss";
 
-type ComposerType = 'messageList' | 'story';
+type ComposerType = "messageList" | "story";
 
 type OwnProps = {
   type: ComposerType;
@@ -198,96 +212,99 @@ type OwnProps = {
   onBlur?: NoneToVoidFunction;
 };
 
-type StateProps =
-  {
-    isOnActiveTab: boolean;
-    editingMessage?: ApiMessage;
-    chat?: ApiChat;
-    chatFullInfo?: ApiChatFullInfo;
-    draft?: ApiDraft;
-    replyToTopic?: ApiTopic;
-    currentMessageList?: MessageList;
-    isChatWithBot?: boolean;
-    isChatWithSelf?: boolean;
-    isChannel?: boolean;
-    isForCurrentMessageList: boolean;
-    isRightColumnShown?: boolean;
-    isSelectModeActive?: boolean;
-    isReactionPickerOpen?: boolean;
-    isForwarding?: boolean;
-    pollModal: TabState['pollModal'];
-    botKeyboardMessageId?: number;
-    botKeyboardPlaceholder?: string;
-    withScheduledButton?: boolean;
-    isInScheduledList?: boolean;
-    canScheduleUntilOnline?: boolean;
-    stickersForEmoji?: ApiSticker[];
-    customEmojiForEmoji?: ApiSticker[];
-    currentUserId?: string;
-    currentUser?: ApiUser;
-    recentEmojis: string[];
-    contentToBeScheduled?: TabState['contentToBeScheduled'];
-    shouldSuggestStickers?: boolean;
-    shouldSuggestCustomEmoji?: boolean;
-    baseEmojiKeywords?: Record<string, string[]>;
-    emojiKeywords?: Record<string, string[]>;
-    topInlineBotIds?: string[];
-    isInlineBotLoading: boolean;
-    inlineBots?: Record<string, false | InlineBotSettings>;
-    botCommands?: ApiBotCommand[] | false;
-    botMenuButton?: ApiBotMenuButton;
-    sendAsUser?: ApiUser;
-    sendAsChat?: ApiChat;
-    sendAsId?: string;
-    editingDraft?: ApiFormattedText;
-    requestedDraft?: ApiFormattedText;
-    requestedDraftFiles?: File[];
-    attachBots: GlobalState['attachMenu']['bots'];
-    attachMenuPeerType?: ApiAttachMenuPeerType;
-    theme: ISettings['theme'];
-    fileSizeLimit: number;
-    captionLimit: number;
-    isCurrentUserPremium?: boolean;
-    canSendVoiceByPrivacy?: boolean;
-    attachmentSettings: GlobalState['attachmentSettings'];
-    slowMode?: ApiChatFullInfo['slowMode'];
-    shouldUpdateStickerSetOrder?: boolean;
-    availableReactions?: ApiAvailableReaction[];
-    topReactions?: ApiReaction[];
-    canPlayAnimatedEmojis?: boolean;
-    canBuyPremium?: boolean;
-    shouldCollectDebugLogs?: boolean;
-    sentStoryReaction?: ApiReaction;
-    stealthMode?: ApiStealthMode;
-    canSendOneTimeMedia?: boolean;
-    quickReplyMessages?: Record<number, ApiMessage>;
-    quickReplies?: Record<number, ApiQuickReply>;
-    canSendQuickReplies?: boolean;
-    webPagePreview?: ApiWebPage;
-    noWebPage?: boolean;
-    isContactRequirePremium?: boolean;
-    effect?: ApiAvailableEffect;
-    effectReactions?: ApiReaction[];
-    areEffectsSupported?: boolean;
-    canPlayEffect?: boolean;
-    shouldPlayEffect?: boolean;
-    maxMessageLength: number;
-  };
-
-enum MainButtonState {
-  Send = 'send',
-  Record = 'record',
-  Edit = 'edit',
-  Schedule = 'schedule',
-  Forward = 'forward',
-  SendOneTime = 'sendOneTime',
-}
-
-type ScheduledMessageArgs = TabState['contentToBeScheduled'] | {
-  id: string; queryId: string; isSilent?: boolean;
+type StateProps = {
+  isOnActiveTab: boolean;
+  editingMessage?: ApiMessage;
+  chat?: ApiChat;
+  chatFullInfo?: ApiChatFullInfo;
+  draft?: ApiDraft;
+  replyToTopic?: ApiTopic;
+  currentMessageList?: MessageList;
+  isChatWithBot?: boolean;
+  isChatWithSelf?: boolean;
+  isChannel?: boolean;
+  isForCurrentMessageList: boolean;
+  isRightColumnShown?: boolean;
+  isSelectModeActive?: boolean;
+  isReactionPickerOpen?: boolean;
+  isForwarding?: boolean;
+  pollModal: TabState["pollModal"];
+  botKeyboardMessageId?: number;
+  botKeyboardPlaceholder?: string;
+  withScheduledButton?: boolean;
+  isInScheduledList?: boolean;
+  canScheduleUntilOnline?: boolean;
+  stickersForEmoji?: ApiSticker[];
+  customEmojiForEmoji?: ApiSticker[];
+  currentUserId?: string;
+  currentUser?: ApiUser;
+  recentEmojis: string[];
+  contentToBeScheduled?: TabState["contentToBeScheduled"];
+  shouldSuggestStickers?: boolean;
+  shouldSuggestCustomEmoji?: boolean;
+  baseEmojiKeywords?: Record<string, string[]>;
+  emojiKeywords?: Record<string, string[]>;
+  topInlineBotIds?: string[];
+  isInlineBotLoading: boolean;
+  inlineBots?: Record<string, false | InlineBotSettings>;
+  botCommands?: ApiBotCommand[] | false;
+  botMenuButton?: ApiBotMenuButton;
+  sendAsUser?: ApiUser;
+  sendAsChat?: ApiChat;
+  sendAsId?: string;
+  editingDraft?: ApiFormattedText;
+  requestedDraft?: ApiFormattedText;
+  requestedDraftFiles?: File[];
+  attachBots: GlobalState["attachMenu"]["bots"];
+  attachMenuPeerType?: ApiAttachMenuPeerType;
+  theme: ISettings["theme"];
+  fileSizeLimit: number;
+  captionLimit: number;
+  isCurrentUserPremium?: boolean;
+  canSendVoiceByPrivacy?: boolean;
+  attachmentSettings: GlobalState["attachmentSettings"];
+  slowMode?: ApiChatFullInfo["slowMode"];
+  shouldUpdateStickerSetOrder?: boolean;
+  availableReactions?: ApiAvailableReaction[];
+  topReactions?: ApiReaction[];
+  canPlayAnimatedEmojis?: boolean;
+  canBuyPremium?: boolean;
+  shouldCollectDebugLogs?: boolean;
+  sentStoryReaction?: ApiReaction;
+  stealthMode?: ApiStealthMode;
+  canSendOneTimeMedia?: boolean;
+  quickReplyMessages?: Record<number, ApiMessage>;
+  quickReplies?: Record<number, ApiQuickReply>;
+  canSendQuickReplies?: boolean;
+  webPagePreview?: ApiWebPage;
+  noWebPage?: boolean;
+  isContactRequirePremium?: boolean;
+  effect?: ApiAvailableEffect;
+  effectReactions?: ApiReaction[];
+  areEffectsSupported?: boolean;
+  canPlayEffect?: boolean;
+  shouldPlayEffect?: boolean;
+  maxMessageLength: number;
 };
 
-const VOICE_RECORDING_FILENAME = 'wonderful-voice-message.ogg';
+enum MainButtonState {
+  Send = "send",
+  Record = "record",
+  Edit = "edit",
+  Schedule = "schedule",
+  Forward = "forward",
+  SendOneTime = "sendOneTime",
+}
+
+type ScheduledMessageArgs =
+  | TabState["contentToBeScheduled"]
+  | {
+      id: string;
+      queryId: string;
+      isSilent?: boolean;
+    };
+
+const VOICE_RECORDING_FILENAME = "wonderful-voice-message.ogg";
 // When voice recording is active, composer placeholder will hide to prevent overlapping
 const SCREEN_WIDTH_TO_HIDE_PLACEHOLDER = 600; // px
 
@@ -422,30 +439,38 @@ const Composer: FC<OwnProps & StateProps> = ({
   // eslint-disable-next-line no-null/no-null
   const storyReactionRef = useRef<HTMLButtonElement>(null);
 
-  const [getHtml, setHtml] = useSignal('');
+  const [getHtml, setHtml] = useSignal("");
   const [isMounted, setIsMounted] = useState(false);
   const getSelectionRange = useGetSelectionRange(editableInputCssSelector);
   const lastMessageSendTimeSeconds = useRef<number>();
   const prevDropAreaState = usePreviousDeprecated(dropAreaState);
   const { width: windowWidth } = windowSize.get();
 
-  const isInMessageList = type === 'messageList';
-  const isInStoryViewer = type === 'story';
+  const isInMessageList = type === "messageList";
+  const isInStoryViewer = type === "story";
   const sendAsPeerIds = isInMessageList ? chat?.sendAsPeerIds : undefined;
-  const canShowSendAs = sendAsPeerIds
-    && (sendAsPeerIds.length > 1 || !sendAsPeerIds.some((peer) => peer.id === currentUserId!));
+  const canShowSendAs =
+    sendAsPeerIds &&
+    (sendAsPeerIds.length > 1 ||
+      !sendAsPeerIds.some((peer) => peer.id === currentUserId!));
   // Prevent Symbol Menu from closing when calendar is open
-  const [isSymbolMenuForced, forceShowSymbolMenu, cancelForceShowSymbolMenu] = useFlag();
+  const [isSymbolMenuForced, forceShowSymbolMenu, cancelForceShowSymbolMenu] =
+    useFlag();
   const sendMessageAction = useSendMessageAction(chatId, threadId);
   const [isInputHasFocus, markInputHasFocus, unmarkInputHasFocus] = useFlag();
   const [isAttachMenuOpen, onAttachMenuOpen, onAttachMenuClose] = useFlag();
 
   const canMediaBeReplaced = editingMessage && canEditMedia(editingMessage);
 
-  const { emojiSet, members: groupChatMembers, botCommands: chatBotCommands } = chatFullInfo || {};
+  const {
+    emojiSet,
+    members: groupChatMembers,
+    botCommands: chatBotCommands,
+  } = chatFullInfo || {};
   const chatEmojiSetId = emojiSet?.id;
 
-  const isSentStoryReactionHeart = sentStoryReaction && isSameReaction(sentStoryReaction, HEART_REACTION);
+  const isSentStoryReactionHeart =
+    sentStoryReaction && isSameReaction(sentStoryReaction, HEART_REACTION);
 
   useEffect(processMessageInputForCustomEmoji, [getHtml]);
 
@@ -453,7 +478,7 @@ const Composer: FC<OwnProps & StateProps> = ({
 
   const [requestCalendar, calendar] = useSchedule(
     isInMessageList && canScheduleUntilOnline,
-    cancelForceShowSymbolMenu,
+    cancelForceShowSymbolMenu
   );
 
   useTimeout(() => {
@@ -478,33 +503,65 @@ const Composer: FC<OwnProps & StateProps> = ({
 
   useEffect(() => {
     const isChannelWithProfiles = isChannel && chat?.areProfilesShown;
-    if (chatId && chat && !sendAsPeerIds && isReady && (isChatSuperGroup(chat) || isChannelWithProfiles)) {
+    if (
+      chatId &&
+      chat &&
+      !sendAsPeerIds &&
+      isReady &&
+      (isChatSuperGroup(chat) || isChannelWithProfiles)
+    ) {
       loadSendAs({ chatId });
     }
   }, [chat, chatId, isChannel, isReady, loadSendAs, sendAsPeerIds]);
 
   const shouldAnimateSendAsButtonRef = useRef(false);
-  useSyncEffect(([prevChatId, prevSendAsPeerIds]) => {
-    // We only animate send-as button if `sendAsPeerIds` was missing when opening the chat
-    shouldAnimateSendAsButtonRef.current = Boolean(chatId === prevChatId && sendAsPeerIds && !prevSendAsPeerIds);
-  }, [chatId, sendAsPeerIds]);
+  useSyncEffect(
+    ([prevChatId, prevSendAsPeerIds]) => {
+      // We only animate send-as button if `sendAsPeerIds` was missing when opening the chat
+      shouldAnimateSendAsButtonRef.current = Boolean(
+        chatId === prevChatId && sendAsPeerIds && !prevSendAsPeerIds
+      );
+    },
+    [chatId, sendAsPeerIds]
+  );
 
   const [attachments, setAttachments] = useState<ApiAttachment[]>([]);
   const hasAttachments = Boolean(attachments.length);
-  const [nextText, setNextText] = useState<ApiFormattedText | undefined>(undefined);
+  const [nextText, setNextText] = useState<ApiFormattedText | undefined>(
+    undefined
+  );
 
   const {
-    canSendStickers, canSendGifs, canAttachMedia, canAttachPolls, canAttachEmbedLinks,
-    canSendVoices, canSendPlainText, canSendAudios, canSendVideos, canSendPhotos, canSendDocuments,
+    canSendStickers,
+    canSendGifs,
+    canAttachMedia,
+    canAttachPolls,
+    canAttachEmbedLinks,
+    canSendVoices,
+    canSendPlainText,
+    canSendAudios,
+    canSendVideos,
+    canSendPhotos,
+    canSendDocuments,
   } = useMemo(
-    () => getAllowedAttachmentOptions(chat, chatFullInfo, isChatWithBot, isInStoryViewer),
-    [chat, chatFullInfo, isChatWithBot, isInStoryViewer],
+    () =>
+      getAllowedAttachmentOptions(
+        chat,
+        chatFullInfo,
+        isChatWithBot,
+        isInStoryViewer
+      ),
+    [chat, chatFullInfo, isChatWithBot, isInStoryViewer]
   );
 
   const isNeedPremium = isContactRequirePremium && isInStoryViewer;
   const isSendTextBlocked = isNeedPremium || !canSendPlainText;
 
-  const hasWebPagePreview = !hasAttachments && canAttachEmbedLinks && !noWebPage && Boolean(webPagePreview);
+  const hasWebPagePreview =
+    !hasAttachments &&
+    canAttachEmbedLinks &&
+    !noWebPage &&
+    Boolean(webPagePreview);
   const isComposerBlocked = isSendTextBlocked && !editingMessage;
 
   useEffect(() => {
@@ -513,52 +570,58 @@ const Composer: FC<OwnProps & StateProps> = ({
     }
   }, [hasWebPagePreview]);
 
-  const insertHtmlAndUpdateCursor = useLastCallback((newHtml: string, inInputId: string = editableInputId) => {
-    if (inInputId === editableInputId && isComposerBlocked) return;
-    const selection = window.getSelection()!;
-    let messageInput: HTMLDivElement;
-    if (inInputId === editableInputId) {
-      messageInput = document.querySelector<HTMLDivElement>(editableInputCssSelector)!;
-    } else {
-      messageInput = document.getElementById(inInputId) as HTMLDivElement;
-    }
-
-    if (selection.rangeCount) {
-      const selectionRange = selection.getRangeAt(0);
-      if (isSelectionInsideInput(selectionRange, inInputId)) {
-        insertHtmlInSelection(newHtml);
-        messageInput.dispatchEvent(new Event('input', { bubbles: true }));
-        return;
+  const insertHtmlAndUpdateCursor = useLastCallback(
+    (newHtml: string, inInputId: string = editableInputId) => {
+      if (inInputId === editableInputId && isComposerBlocked) return;
+      const selection = window.getSelection()!;
+      let messageInput: HTMLDivElement;
+      if (inInputId === editableInputId) {
+        messageInput = document.querySelector<HTMLDivElement>(
+          editableInputCssSelector
+        )!;
+      } else {
+        messageInput = document.getElementById(inInputId) as HTMLDivElement;
       }
+
+      if (selection.rangeCount) {
+        const selectionRange = selection.getRangeAt(0);
+        if (isSelectionInsideInput(selectionRange, inInputId)) {
+          insertHtmlInSelection(newHtml);
+          messageInput.dispatchEvent(new Event("input", { bubbles: true }));
+          return;
+        }
+      }
+
+      setHtml(`${getHtml()}${newHtml}`);
+
+      // If selection is outside of input, set cursor at the end of input
+      requestNextMutation(() => {
+        focusEditableElement(messageInput);
+      });
     }
+  );
 
-    setHtml(`${getHtml()}${newHtml}`);
+  const insertTextAndUpdateCursor = useLastCallback(
+    (text: string, inInputId: string = editableInputId) => {
+      const newHtml = renderText(text, ["escape_html", "emoji_html", "br_html"])
+        .join("")
+        .replace(/\u200b+/g, "\u200b");
+      insertHtmlAndUpdateCursor(newHtml, inInputId);
+    }
+  );
 
-    // If selection is outside of input, set cursor at the end of input
-    requestNextMutation(() => {
-      focusEditableElement(messageInput);
-    });
-  });
+  const insertFormattedTextAndUpdateCursor = useLastCallback(
+    (text: ApiFormattedText, inInputId: string = editableInputId) => {
+      const newHtml = getTextWithEntitiesAsHtml(text);
+      insertHtmlAndUpdateCursor(newHtml, inInputId);
+    }
+  );
 
-  const insertTextAndUpdateCursor = useLastCallback((
-    text: string, inInputId: string = editableInputId,
-  ) => {
-    const newHtml = renderText(text, ['escape_html', 'emoji_html', 'br_html'])
-      .join('')
-      .replace(/\u200b+/g, '\u200b');
-    insertHtmlAndUpdateCursor(newHtml, inInputId);
-  });
-
-  const insertFormattedTextAndUpdateCursor = useLastCallback((
-    text: ApiFormattedText, inInputId: string = editableInputId,
-  ) => {
-    const newHtml = getTextWithEntitiesAsHtml(text);
-    insertHtmlAndUpdateCursor(newHtml, inInputId);
-  });
-
-  const insertCustomEmojiAndUpdateCursor = useLastCallback((emoji: ApiSticker, inInputId: string = editableInputId) => {
-    insertHtmlAndUpdateCursor(buildCustomEmojiHtml(emoji), inInputId);
-  });
+  const insertCustomEmojiAndUpdateCursor = useLastCallback(
+    (emoji: ApiSticker, inInputId: string = editableInputId) => {
+      insertHtmlAndUpdateCursor(buildCustomEmojiHtml(emoji), inInputId);
+    }
+  );
 
   const insertNextText = useLastCallback(() => {
     if (!nextText) return;
@@ -590,7 +653,8 @@ const Composer: FC<OwnProps & StateProps> = ({
   });
 
   const [isBotKeyboardOpen, openBotKeyboard, closeBotKeyboard] = useFlag();
-  const [isBotCommandMenuOpen, openBotCommandMenu, closeBotCommandMenu] = useFlag();
+  const [isBotCommandMenuOpen, openBotCommandMenu, closeBotCommandMenu] =
+    useFlag();
   const [isSymbolMenuOpen, openSymbolMenu, closeSymbolMenu] = useFlag();
   const [isSendAsMenuOpen, openSendAsMenu, closeSendAsMenu] = useFlag();
   const [isHoverDisabled, disableHover, enableHover] = useFlag();
@@ -609,24 +673,40 @@ const Composer: FC<OwnProps & StateProps> = ({
   } = useVoiceRecording();
 
   const shouldSendRecordingStatus = isForCurrentMessageList && !isInStoryViewer;
-  useInterval(() => {
-    sendMessageAction({ type: 'recordAudio' });
-  }, shouldSendRecordingStatus ? activeVoiceRecording && SEND_MESSAGE_ACTION_INTERVAL : undefined);
+  useInterval(
+    () => {
+      sendMessageAction({ type: "recordAudio" });
+    },
+    shouldSendRecordingStatus
+      ? activeVoiceRecording && SEND_MESSAGE_ACTION_INTERVAL
+      : undefined
+  );
 
   useEffect(() => {
     if (!isForCurrentMessageList || isInStoryViewer) return;
     if (!activeVoiceRecording) {
-      sendMessageAction({ type: 'cancel' });
+      sendMessageAction({ type: "cancel" });
     }
-  }, [activeVoiceRecording, isForCurrentMessageList, isInStoryViewer, sendMessageAction]);
+  }, [
+    activeVoiceRecording,
+    isForCurrentMessageList,
+    isInStoryViewer,
+    sendMessageAction,
+  ]);
 
   const isEditingRef = useStateRef(Boolean(editingMessage));
   useEffect(() => {
     if (!isForCurrentMessageList || isInStoryViewer) return;
     if (getHtml() && !isEditingRef.current) {
-      sendMessageAction({ type: 'typing' });
+      sendMessageAction({ type: "typing" });
     }
-  }, [getHtml, isEditingRef, isForCurrentMessageList, isInStoryViewer, sendMessageAction]);
+  }, [
+    getHtml,
+    isEditingRef,
+    isForCurrentMessageList,
+    isInStoryViewer,
+    sendMessageAction,
+  ]);
 
   const isAdmin = chat && isChatAdmin(chat);
 
@@ -637,14 +717,19 @@ const Composer: FC<OwnProps & StateProps> = ({
     filteredCustomEmojis,
     insertEmoji,
   } = useEmojiTooltip(
-    Boolean(isReady && isOnActiveTab && (isInStoryViewer || isForCurrentMessageList)
-      && shouldSuggestStickers && !hasAttachments),
+    Boolean(
+      isReady &&
+        isOnActiveTab &&
+        (isInStoryViewer || isForCurrentMessageList) &&
+        shouldSuggestStickers &&
+        !hasAttachments
+    ),
     getHtml,
     setHtml,
     undefined,
     recentEmojis,
     baseEmojiKeywords,
-    emojiKeywords,
+    emojiKeywords
   );
 
   const {
@@ -652,27 +737,31 @@ const Composer: FC<OwnProps & StateProps> = ({
     closeCustomEmojiTooltip,
     insertCustomEmoji,
   } = useCustomEmojiTooltip(
-    Boolean(isReady && isOnActiveTab && (isInStoryViewer || isForCurrentMessageList)
-      && shouldSuggestCustomEmoji && !hasAttachments),
+    Boolean(
+      isReady &&
+        isOnActiveTab &&
+        (isInStoryViewer || isForCurrentMessageList) &&
+        shouldSuggestCustomEmoji &&
+        !hasAttachments
+    ),
     getHtml,
     setHtml,
     getSelectionRange,
     inputRef,
-    customEmojiForEmoji,
+    customEmojiForEmoji
   );
 
-  const {
-    isStickerTooltipOpen,
-    closeStickerTooltip,
-  } = useStickerTooltip(
-    Boolean(isReady
-      && isOnActiveTab
-      && (isInStoryViewer || isForCurrentMessageList)
-      && shouldSuggestStickers
-      && canSendStickers
-      && !hasAttachments),
+  const { isStickerTooltipOpen, closeStickerTooltip } = useStickerTooltip(
+    Boolean(
+      isReady &&
+        isOnActiveTab &&
+        (isInStoryViewer || isForCurrentMessageList) &&
+        shouldSuggestStickers &&
+        canSendStickers &&
+        !hasAttachments
+    ),
     getHtml,
-    stickersForEmoji,
+    stickersForEmoji
   );
 
   const {
@@ -681,14 +770,16 @@ const Composer: FC<OwnProps & StateProps> = ({
     insertMention,
     mentionFilteredUsers,
   } = useMentionTooltip(
-    Boolean(isInMessageList && isReady && isForCurrentMessageList && !hasAttachments),
+    Boolean(
+      isInMessageList && isReady && isForCurrentMessageList && !hasAttachments
+    ),
     getHtml,
     setHtml,
     getSelectionRange,
     inputRef,
     groupChatMembers,
     topInlineBotIds,
-    currentUserId,
+    currentUserId
   );
 
   const {
@@ -702,13 +793,17 @@ const Composer: FC<OwnProps & StateProps> = ({
     help: inlineBotHelp,
     loadMore: loadMoreForInlineBot,
   } = useInlineBotTooltip(
-    Boolean(isInMessageList && isReady && isForCurrentMessageList && !hasAttachments),
+    Boolean(
+      isInMessageList && isReady && isForCurrentMessageList && !hasAttachments
+    ),
     chatId,
     getHtml,
-    inlineBots,
+    inlineBots
   );
 
-  const hasQuickReplies = Boolean(quickReplies && Object.keys(quickReplies).length);
+  const hasQuickReplies = Boolean(
+    quickReplies && Object.keys(quickReplies).length
+  );
 
   const {
     isOpen: isChatCommandTooltipOpen,
@@ -716,14 +811,18 @@ const Composer: FC<OwnProps & StateProps> = ({
     filteredBotCommands: botTooltipCommands,
     filteredQuickReplies: quickReplyCommands,
   } = useChatCommandTooltip(
-    Boolean(isInMessageList
-      && isReady
-      && isForCurrentMessageList
-      && ((botCommands && botCommands?.length) || chatBotCommands?.length || (hasQuickReplies && canSendQuickReplies))),
+    Boolean(
+      isInMessageList &&
+        isReady &&
+        isForCurrentMessageList &&
+        ((botCommands && botCommands?.length) ||
+          chatBotCommands?.length ||
+          (hasQuickReplies && canSendQuickReplies))
+    ),
     getHtml,
     botCommands,
     chatBotCommands,
-    canSendQuickReplies ? quickReplies : undefined,
+    canSendQuickReplies ? quickReplies : undefined
   );
 
   useDraft({
@@ -738,7 +837,7 @@ const Composer: FC<OwnProps & StateProps> = ({
 
   const resetComposer = useLastCallback((shouldPreserveInput = false) => {
     if (!shouldPreserveInput) {
-      setHtml('');
+      setHtml("");
     }
 
     setAttachments(MEMO_EMPTY_ARRAY);
@@ -757,17 +856,18 @@ const Composer: FC<OwnProps & StateProps> = ({
     }
   });
 
-  const [handleEditComplete, handleEditCancel, shouldForceShowEditing] = useEditing(
-    getHtml,
-    setHtml,
-    editingMessage,
-    resetComposer,
-    chatId,
-    threadId,
-    messageListType,
-    draft,
-    editingDraft,
-  );
+  const [handleEditComplete, handleEditCancel, shouldForceShowEditing] =
+    useEditing(
+      getHtml,
+      setHtml,
+      editingMessage,
+      resetComposer,
+      chatId,
+      threadId,
+      messageListType,
+      draft,
+      editingDraft
+    );
 
   // Handle chat change (should be placed after `useDraft` and `useEditing`)
   const resetComposerRef = useStateRef(resetComposer);
@@ -785,21 +885,21 @@ const Composer: FC<OwnProps & StateProps> = ({
     const notificationNumber = customEmojiNotificationNumber.current;
     if (!notificationNumber) {
       showNotification({
-        message: lang('UnlockPremiumEmojiHint'),
+        message: lang("UnlockPremiumEmojiHint"),
         action: {
-          action: 'openPremiumModal',
-          payload: { initialSection: 'animated_emoji' },
+          action: "openPremiumModal",
+          payload: { initialSection: "animated_emoji" },
         },
-        actionText: lang('PremiumMore'),
+        actionText: lang("PremiumMore"),
       });
     } else {
       showNotification({
-        message: lang('UnlockPremiumEmojiHint2'),
+        message: lang("UnlockPremiumEmojiHint2"),
         action: {
-          action: 'openChat',
+          action: "openChat",
           payload: { id: currentUserId, shouldReplaceHistory: true },
         },
-        actionText: lang('Open'),
+        actionText: lang("Open"),
       });
     }
     customEmojiNotificationNumber.current = Number(!notificationNumber);
@@ -814,7 +914,12 @@ const Composer: FC<OwnProps & StateProps> = ({
       return MainButtonState.Edit;
     }
 
-    if (IS_VOICE_RECORDING_SUPPORTED && !activeVoiceRecording && !isForwarding && !(getHtml() && !hasAttachments)) {
+    if (
+      IS_VOICE_RECORDING_SUPPORTED &&
+      !activeVoiceRecording &&
+      !isForwarding &&
+      !(getHtml() && !hasAttachments)
+    ) {
       return MainButtonState.Record;
     }
 
@@ -824,8 +929,15 @@ const Composer: FC<OwnProps & StateProps> = ({
 
     return MainButtonState.Send;
   }, [
-    activeVoiceRecording, editingMessage, getHtml, hasAttachments, isForwarding, isInputHasFocus, onForward,
-    shouldForceShowEditing, isInScheduledList,
+    activeVoiceRecording,
+    editingMessage,
+    getHtml,
+    hasAttachments,
+    isForwarding,
+    isInputHasFocus,
+    onForward,
+    shouldForceShowEditing,
+    isInScheduledList,
   ]);
   const canShowCustomSendMenu = !isInScheduledList;
 
@@ -834,7 +946,10 @@ const Composer: FC<OwnProps & StateProps> = ({
     handleContextMenu,
     handleContextMenuClose,
     handleContextMenuHide,
-  } = useContextMenuHandlers(mainButtonRef, !(mainButtonState === MainButtonState.Send && canShowCustomSendMenu));
+  } = useContextMenuHandlers(
+    mainButtonRef,
+    !(mainButtonState === MainButtonState.Send && canShowCustomSendMenu)
+  );
 
   const {
     contextMenuAnchor: storyReactionPickerAnchor,
@@ -854,7 +969,13 @@ const Composer: FC<OwnProps & StateProps> = ({
       });
       handleStoryPickerContextMenuHide();
     }
-  }, [chatId, handleStoryPickerContextMenuHide, isReactionPickerOpen, storyId, storyReactionPickerAnchor]);
+  }, [
+    chatId,
+    handleStoryPickerContextMenuHide,
+    isReactionPickerOpen,
+    storyId,
+    storyReactionPickerAnchor,
+  ]);
 
   useClipboardPaste(
     isForCurrentMessageList || isInStoryViewer,
@@ -863,7 +984,7 @@ const Composer: FC<OwnProps & StateProps> = ({
     setNextText,
     editingMessage,
     !isCurrentUserPremium && !isChatWithSelf,
-    showCustomEmojiPremiumNotification,
+    showCustomEmojiPremiumNotification
   );
 
   const handleEmbeddedClear = useLastCallback(() => {
@@ -872,45 +993,55 @@ const Composer: FC<OwnProps & StateProps> = ({
     }
   });
 
-  const validateTextLength = useLastCallback((text: string, isAttachmentModal?: boolean) => {
-    const maxLength = isAttachmentModal ? captionLimit : maxMessageLength;
-    if (text?.length > maxLength) {
-      const extraLength = text.length - maxLength;
-      showDialog({
-        data: {
-          message: 'MESSAGE_TOO_LONG_PLEASE_REMOVE_CHARACTERS',
-          textParams: {
-            '{EXTRA_CHARS_COUNT}': extraLength.toString(),
-            '{PLURAL_S}': extraLength > 1 ? 's' : '',
+  const validateTextLength = useLastCallback(
+    (text: string, isAttachmentModal?: boolean) => {
+      const maxLength = isAttachmentModal ? captionLimit : maxMessageLength;
+      if (text?.length > maxLength) {
+        const extraLength = text.length - maxLength;
+        showDialog({
+          data: {
+            message: "MESSAGE_TOO_LONG_PLEASE_REMOVE_CHARACTERS",
+            textParams: {
+              "{EXTRA_CHARS_COUNT}": extraLength.toString(),
+              "{PLURAL_S}": extraLength > 1 ? "s" : "",
+            },
+            hasErrorKey: true,
           },
-          hasErrorKey: true,
-        },
-      });
+        });
 
-      return false;
+        return false;
+      }
+      return true;
     }
-    return true;
-  });
+  );
 
   const checkSlowMode = useLastCallback(() => {
     if (slowMode && !isAdmin) {
-      const messageInput = document.querySelector<HTMLDivElement>(editableInputCssSelector);
+      const messageInput = document.querySelector<HTMLDivElement>(
+        editableInputCssSelector
+      );
 
       const nowSeconds = getServerTime();
-      const secondsSinceLastMessage = lastMessageSendTimeSeconds.current
-        && Math.floor(nowSeconds - lastMessageSendTimeSeconds.current);
-      const nextSendDateNotReached = slowMode.nextSendDate && slowMode.nextSendDate > nowSeconds;
+      const secondsSinceLastMessage =
+        lastMessageSendTimeSeconds.current &&
+        Math.floor(nowSeconds - lastMessageSendTimeSeconds.current);
+      const nextSendDateNotReached =
+        slowMode.nextSendDate && slowMode.nextSendDate > nowSeconds;
 
       if (
-        (secondsSinceLastMessage && secondsSinceLastMessage < slowMode.seconds)
-        || nextSendDateNotReached
+        (secondsSinceLastMessage &&
+          secondsSinceLastMessage < slowMode.seconds) ||
+        nextSendDateNotReached
       ) {
         const secondsRemaining = nextSendDateNotReached
           ? slowMode.nextSendDate! - nowSeconds
           : slowMode.seconds - secondsSinceLastMessage!;
         showDialog({
           data: {
-            message: lang('SlowModeHint', formatMediaDuration(secondsRemaining)),
+            message: lang(
+              "SlowModeHint",
+              formatMediaDuration(secondsRemaining)
+            ),
             isSlowMode: true,
             hasErrorKey: false,
           },
@@ -924,191 +1055,215 @@ const Composer: FC<OwnProps & StateProps> = ({
     return true;
   });
 
-  const sendAttachments = useLastCallback(({
-    attachments: attachmentsToSend,
-    sendCompressed = attachmentSettings.shouldCompress,
-    sendGrouped = attachmentSettings.shouldSendGrouped,
-    isSilent,
-    scheduledAt,
-    isInvertedMedia,
-  }: {
-    attachments: ApiAttachment[];
-    sendCompressed?: boolean;
-    sendGrouped?: boolean;
-    isSilent?: boolean;
-    scheduledAt?: number;
-    isInvertedMedia?: true;
-  }) => {
-    if (!currentMessageList && !storyId) {
-      return;
-    }
-
-    const { text, entities } = parseHtmlAsFormattedText(getHtml());
-    if (!text && !attachmentsToSend.length) {
-      return;
-    }
-    if (!validateTextLength(text, true)) return;
-    if (!checkSlowMode()) return;
-
-    isInvertedMedia = text && sendCompressed && sendGrouped ? isInvertedMedia : undefined;
-
-    if (editingMessage) {
-      editMessage({
-        messageList: currentMessageList,
-        text,
-        entities,
-        attachments: prepareAttachmentsToSend(attachmentsToSend, sendCompressed),
-      });
-    } else {
-      sendMessage({
-        messageList: currentMessageList,
-        text,
-        entities,
-        scheduledAt,
-        isSilent,
-        shouldUpdateStickerSetOrder,
-        attachments: prepareAttachmentsToSend(attachmentsToSend, sendCompressed),
-        shouldGroupMessages: sendGrouped,
-        isInvertedMedia,
-      });
-    }
-
-    lastMessageSendTimeSeconds.current = getServerTime();
-
-    clearDraft({ chatId, isLocalOnly: true });
-
-    // Wait until message animation starts
-    requestMeasure(() => {
-      resetComposer();
-    });
-  });
-
-  const handleSendAttachmentsFromModal = useLastCallback((
-    sendCompressed: boolean,
-    sendGrouped: boolean,
-    isInvertedMedia?: true,
-  ) => {
-    sendAttachments({
-      attachments,
-      sendCompressed,
-      sendGrouped,
-      isInvertedMedia,
-    });
-  });
-
-  const handleSendAttachments = useLastCallback((
-    sendCompressed: boolean,
-    sendGrouped: boolean,
-    isSilent?: boolean,
-    scheduledAt?: number,
-    isInvertedMedia?: true,
-  ) => {
-    sendAttachments({
-      attachments,
-      sendCompressed,
-      sendGrouped,
+  const sendAttachments = useLastCallback(
+    ({
+      attachments: attachmentsToSend,
+      sendCompressed = attachmentSettings.shouldCompress,
+      sendGrouped = attachmentSettings.shouldSendGrouped,
       isSilent,
       scheduledAt,
       isInvertedMedia,
-    });
-  });
-
-  const handleSend = useLastCallback(async (isSilent = false, scheduledAt?: number) => {
-    if (!currentMessageList && !storyId) {
-      return;
-    }
-
-    let currentAttachments = attachments;
-
-    if (activeVoiceRecording) {
-      const record = await stopRecordingVoice();
-      const ttlSeconds = isViewOnceEnabled ? ONE_TIME_MEDIA_TTL_SECONDS : undefined;
-      if (record) {
-        const { blob, duration, waveform } = record;
-        currentAttachments = [await buildAttachment(
-          VOICE_RECORDING_FILENAME,
-          blob,
-          { voice: { duration, waveform }, ttlSeconds },
-        )];
+    }: {
+      attachments: ApiAttachment[];
+      sendCompressed?: boolean;
+      sendGrouped?: boolean;
+      isSilent?: boolean;
+      scheduledAt?: number;
+      isInvertedMedia?: true;
+    }) => {
+      if (!currentMessageList && !storyId) {
+        return;
       }
-    }
 
-    const { text, entities } = parseHtmlAsFormattedText(getHtml());
-
-    if (currentAttachments.length) {
-      sendAttachments({
-        attachments: currentAttachments,
-        scheduledAt,
-        isSilent,
-      });
-      return;
-    }
-
-    if (!text && !isForwarding) {
-      return;
-    }
-
-    if (!validateTextLength(text)) return;
-
-    const messageInput = document.querySelector<HTMLDivElement>(editableInputCssSelector);
-
-    const effectId = effect?.id;
-
-    if (text) {
+      const { text, entities } = parseHtmlAsFormattedText(getHtml());
+      if (!text && !attachmentsToSend.length) {
+        return;
+      }
+      if (!validateTextLength(text, true)) return;
       if (!checkSlowMode()) return;
 
-      const isInvertedMedia = hasWebPagePreview ? attachmentSettings.isInvertedMedia : undefined;
+      isInvertedMedia =
+        text && sendCompressed && sendGrouped ? isInvertedMedia : undefined;
 
-      if (areEffectsSupported) saveEffectInDraft({ chatId, threadId, effectId: undefined });
+      if (editingMessage) {
+        editMessage({
+          messageList: currentMessageList,
+          text,
+          entities,
+          attachments: prepareAttachmentsToSend(
+            attachmentsToSend,
+            sendCompressed
+          ),
+        });
+      } else {
+        sendMessage({
+          messageList: currentMessageList,
+          text,
+          entities,
+          scheduledAt,
+          isSilent,
+          shouldUpdateStickerSetOrder,
+          attachments: prepareAttachmentsToSend(
+            attachmentsToSend,
+            sendCompressed
+          ),
+          shouldGroupMessages: sendGrouped,
+          isInvertedMedia,
+        });
+      }
 
-      sendMessage({
-        messageList: currentMessageList,
-        text,
-        entities,
-        scheduledAt,
-        isSilent,
-        shouldUpdateStickerSetOrder,
+      lastMessageSendTimeSeconds.current = getServerTime();
+
+      clearDraft({ chatId, isLocalOnly: true });
+
+      // Wait until message animation starts
+      requestMeasure(() => {
+        resetComposer();
+      });
+    }
+  );
+
+  const handleSendAttachmentsFromModal = useLastCallback(
+    (sendCompressed: boolean, sendGrouped: boolean, isInvertedMedia?: true) => {
+      sendAttachments({
+        attachments,
+        sendCompressed,
+        sendGrouped,
         isInvertedMedia,
-        effectId,
-        webPageMediaSize: attachmentSettings.webPageMediaSize,
-        webPageUrl: hasWebPagePreview ? webPagePreview!.url : undefined,
       });
     }
+  );
 
-    if (isForwarding) {
-      forwardMessages({
-        scheduledAt,
+  const handleSendAttachments = useLastCallback(
+    (
+      sendCompressed: boolean,
+      sendGrouped: boolean,
+      isSilent?: boolean,
+      scheduledAt?: number,
+      isInvertedMedia?: true
+    ) => {
+      sendAttachments({
+        attachments,
+        sendCompressed,
+        sendGrouped,
         isSilent,
+        scheduledAt,
+        isInvertedMedia,
       });
     }
+  );
 
-    lastMessageSendTimeSeconds.current = getServerTime();
-    clearDraft({
-      chatId, threadId, isLocalOnly: true, shouldKeepReply: isForwarding,
-    });
+  const handleSend = useLastCallback(
+    async (isSilent = false, scheduledAt?: number) => {
+      if (!currentMessageList && !storyId) {
+        return;
+      }
 
-    if (IS_IOS && messageInput && messageInput === document.activeElement) {
-      applyIosAutoCapitalizationFix(messageInput);
+      let currentAttachments = attachments;
+
+      if (activeVoiceRecording) {
+        const record = await stopRecordingVoice();
+        const ttlSeconds = isViewOnceEnabled
+          ? ONE_TIME_MEDIA_TTL_SECONDS
+          : undefined;
+        if (record) {
+          const { blob, duration, waveform } = record;
+          currentAttachments = [
+            await buildAttachment(VOICE_RECORDING_FILENAME, blob, {
+              voice: { duration, waveform },
+              ttlSeconds,
+            }),
+          ];
+        }
+      }
+
+      const { text, entities } = parseHtmlAsFormattedText(getHtml());
+
+      if (currentAttachments.length) {
+        sendAttachments({
+          attachments: currentAttachments,
+          scheduledAt,
+          isSilent,
+        });
+        return;
+      }
+
+      if (!text && !isForwarding) {
+        return;
+      }
+
+      if (!validateTextLength(text)) return;
+
+      const messageInput = document.querySelector<HTMLDivElement>(
+        editableInputCssSelector
+      );
+
+      const effectId = effect?.id;
+
+      if (text) {
+        if (!checkSlowMode()) return;
+
+        const isInvertedMedia = hasWebPagePreview
+          ? attachmentSettings.isInvertedMedia
+          : undefined;
+
+        if (areEffectsSupported)
+          saveEffectInDraft({ chatId, threadId, effectId: undefined });
+
+        sendMessage({
+          messageList: currentMessageList,
+          text,
+          entities,
+          scheduledAt,
+          isSilent,
+          shouldUpdateStickerSetOrder,
+          isInvertedMedia,
+          effectId,
+          webPageMediaSize: attachmentSettings.webPageMediaSize,
+          webPageUrl: hasWebPagePreview ? webPagePreview!.url : undefined,
+        });
+      }
+
+      if (isForwarding) {
+        forwardMessages({
+          scheduledAt,
+          isSilent,
+        });
+      }
+
+      lastMessageSendTimeSeconds.current = getServerTime();
+      clearDraft({
+        chatId,
+        threadId,
+        isLocalOnly: true,
+        shouldKeepReply: isForwarding,
+      });
+
+      if (IS_IOS && messageInput && messageInput === document.activeElement) {
+        applyIosAutoCapitalizationFix(messageInput);
+      }
+
+      // Wait until message animation starts
+      requestMeasure(() => {
+        resetComposer();
+      });
     }
-
-    // Wait until message animation starts
-    requestMeasure(() => {
-      resetComposer();
-    });
-  });
+  );
 
   const handleClickBotMenu = useLastCallback(() => {
-    if (botMenuButton?.type !== 'webApp') {
+    if (botMenuButton?.type !== "webApp") {
       return;
     }
 
     const parsedLink = tryParseDeepLink(botMenuButton.url);
 
-    if (parsedLink?.type === 'publicUsernameOrBotLink' && parsedLink.appName) {
+    if (parsedLink?.type === "publicUsernameOrBotLink" && parsedLink.appName) {
       processDeepLink(botMenuButton.url);
     } else {
       callAttachBot({
-        chatId, url: botMenuButton.url, threadId,
+        chatId,
+        url: botMenuButton.url,
+        threadId,
       });
     }
   });
@@ -1118,45 +1273,79 @@ const Composer: FC<OwnProps & StateProps> = ({
     openBotCommandMenu();
   });
 
-  const handleMessageSchedule = useLastCallback((
-    args: ScheduledMessageArgs, scheduledAt: number, messageList: MessageList, effectId?: string,
-  ) => {
-    if (args && 'queryId' in args) {
-      const { id, queryId, isSilent } = args;
-      sendInlineBotResult({
-        id,
-        queryId,
-        scheduledAt,
-        isSilent,
-        messageList,
-      });
-      return;
-    }
+  const handleMessageSchedule = useLastCallback(
+    (
+      args: ScheduledMessageArgs,
+      scheduledAt: number,
+      messageList: MessageList,
+      effectId?: string
+    ) => {
+      if (args && "queryId" in args) {
+        const { id, queryId, isSilent } = args;
+        sendInlineBotResult({
+          id,
+          queryId,
+          scheduledAt,
+          isSilent,
+          messageList,
+        });
+        return;
+      }
 
-    const { isSilent, ...restArgs } = args || {};
+      const { isSilent, ...restArgs } = args || {};
 
-    if (!args || Object.keys(restArgs).length === 0) {
-      void handleSend(Boolean(isSilent), scheduledAt);
-    } else if (args.sendCompressed !== undefined || args.sendGrouped !== undefined) {
-      const { sendCompressed = false, sendGrouped = false, isInvertedMedia } = args;
-      void handleSendAttachments(sendCompressed, sendGrouped, isSilent, scheduledAt, isInvertedMedia);
-    } else {
-      sendMessage({
-        ...args,
-        messageList,
-        scheduledAt,
-        effectId,
-      });
+      if (!args || Object.keys(restArgs).length === 0) {
+        void handleSend(Boolean(isSilent), scheduledAt);
+      } else if (
+        args.sendCompressed !== undefined ||
+        args.sendGrouped !== undefined
+      ) {
+        const {
+          sendCompressed = false,
+          sendGrouped = false,
+          isInvertedMedia,
+        } = args;
+        void handleSendAttachments(
+          sendCompressed,
+          sendGrouped,
+          isSilent,
+          scheduledAt,
+          isInvertedMedia
+        );
+      } else {
+        sendMessage({
+          ...args,
+          messageList,
+          scheduledAt,
+          effectId,
+        });
+      }
     }
-  });
+  );
 
-  useEffectWithPrevDeps(([prevContentToBeScheduled]) => {
-    if (currentMessageList && contentToBeScheduled && contentToBeScheduled !== prevContentToBeScheduled) {
-      requestCalendar((scheduledAt) => {
-        handleMessageSchedule(contentToBeScheduled, scheduledAt, currentMessageList);
-      });
-    }
-  }, [contentToBeScheduled, currentMessageList, handleMessageSchedule, requestCalendar]);
+  useEffectWithPrevDeps(
+    ([prevContentToBeScheduled]) => {
+      if (
+        currentMessageList &&
+        contentToBeScheduled &&
+        contentToBeScheduled !== prevContentToBeScheduled
+      ) {
+        requestCalendar((scheduledAt) => {
+          handleMessageSchedule(
+            contentToBeScheduled,
+            scheduledAt,
+            currentMessageList
+          );
+        });
+      }
+    },
+    [
+      contentToBeScheduled,
+      currentMessageList,
+      handleMessageSchedule,
+      requestCalendar,
+    ]
+  );
 
   useEffect(() => {
     if (requestedDraft) {
@@ -1177,116 +1366,149 @@ const Composer: FC<OwnProps & StateProps> = ({
     }
   }, [handleFileSelect, requestedDraftFiles, resetOpenChatWithDraft]);
 
-  const handleCustomEmojiSelect = useLastCallback((emoji: ApiSticker, inInputId?: string) => {
-    const emojiSetId = 'id' in emoji.stickerSetInfo && emoji.stickerSetInfo.id;
-    if (!emoji.isFree && !isCurrentUserPremium && !isChatWithSelf && emojiSetId !== chatEmojiSetId) {
-      showCustomEmojiPremiumNotification();
-      return;
+  const handleCustomEmojiSelect = useLastCallback(
+    (emoji: ApiSticker, inInputId?: string) => {
+      const emojiSetId =
+        "id" in emoji.stickerSetInfo && emoji.stickerSetInfo.id;
+      if (
+        !emoji.isFree &&
+        !isCurrentUserPremium &&
+        !isChatWithSelf &&
+        emojiSetId !== chatEmojiSetId
+      ) {
+        showCustomEmojiPremiumNotification();
+        return;
+      }
+
+      insertCustomEmojiAndUpdateCursor(emoji, inInputId);
     }
+  );
 
-    insertCustomEmojiAndUpdateCursor(emoji, inInputId);
-  });
-
-  const handleCustomEmojiSelectAttachmentModal = useLastCallback((emoji: ApiSticker) => {
-    handleCustomEmojiSelect(emoji, EDITABLE_INPUT_MODAL_ID);
-  });
-
-  const handleGifSelect = useLastCallback((gif: ApiVideo, isSilent?: boolean, isScheduleRequested?: boolean) => {
-    if (!currentMessageList && !storyId) {
-      return;
+  const handleCustomEmojiSelectAttachmentModal = useLastCallback(
+    (emoji: ApiSticker) => {
+      handleCustomEmojiSelect(emoji, EDITABLE_INPUT_MODAL_ID);
     }
+  );
 
-    if (isInScheduledList || isScheduleRequested) {
-      forceShowSymbolMenu();
-      requestCalendar((scheduledAt) => {
-        cancelForceShowSymbolMenu();
-        handleMessageSchedule({ gif, isSilent }, scheduledAt, currentMessageList!);
+  const handleGifSelect = useLastCallback(
+    (gif: ApiVideo, isSilent?: boolean, isScheduleRequested?: boolean) => {
+      if (!currentMessageList && !storyId) {
+        return;
+      }
+
+      if (isInScheduledList || isScheduleRequested) {
+        forceShowSymbolMenu();
+        requestCalendar((scheduledAt) => {
+          cancelForceShowSymbolMenu();
+          handleMessageSchedule(
+            { gif, isSilent },
+            scheduledAt,
+            currentMessageList!
+          );
+          requestMeasure(() => {
+            resetComposer(true);
+          });
+        });
+      } else {
+        sendMessage({ messageList: currentMessageList, gif, isSilent });
         requestMeasure(() => {
           resetComposer(true);
         });
-      });
-    } else {
-      sendMessage({ messageList: currentMessageList, gif, isSilent });
-      requestMeasure(() => {
-        resetComposer(true);
-      });
+      }
     }
-  });
+  );
 
-  const handleStickerSelect = useLastCallback((
-    sticker: ApiSticker,
-    isSilent?: boolean,
-    isScheduleRequested?: boolean,
-    shouldPreserveInput = false,
-    canUpdateStickerSetsOrder?: boolean,
-  ) => {
-    if (!currentMessageList && !storyId) {
-      return;
-    }
+  const handleStickerSelect = useLastCallback(
+    (
+      sticker: ApiSticker,
+      isSilent?: boolean,
+      isScheduleRequested?: boolean,
+      shouldPreserveInput = false,
+      canUpdateStickerSetsOrder?: boolean
+    ) => {
+      if (!currentMessageList && !storyId) {
+        return;
+      }
 
-    sticker = {
-      ...sticker,
-      isPreloadedGlobally: true,
-    };
+      sticker = {
+        ...sticker,
+        isPreloadedGlobally: true,
+      };
 
-    if (isInScheduledList || isScheduleRequested) {
-      forceShowSymbolMenu();
-      requestCalendar((scheduledAt) => {
-        cancelForceShowSymbolMenu();
-        handleMessageSchedule({ sticker, isSilent }, scheduledAt, currentMessageList!);
+      if (isInScheduledList || isScheduleRequested) {
+        forceShowSymbolMenu();
+        requestCalendar((scheduledAt) => {
+          cancelForceShowSymbolMenu();
+          handleMessageSchedule(
+            { sticker, isSilent },
+            scheduledAt,
+            currentMessageList!
+          );
+          requestMeasure(() => {
+            resetComposer(shouldPreserveInput);
+          });
+        });
+      } else {
+        sendMessage({
+          messageList: currentMessageList,
+          sticker,
+          isSilent,
+          shouldUpdateStickerSetOrder:
+            shouldUpdateStickerSetOrder && canUpdateStickerSetsOrder,
+        });
+        clearDraft({ chatId, threadId, isLocalOnly: true });
+
         requestMeasure(() => {
           resetComposer(shouldPreserveInput);
         });
-      });
-    } else {
-      sendMessage({
-        messageList: currentMessageList,
-        sticker,
-        isSilent,
-        shouldUpdateStickerSetOrder: shouldUpdateStickerSetOrder && canUpdateStickerSetsOrder,
-      });
-      clearDraft({ chatId, threadId, isLocalOnly: true });
-
-      requestMeasure(() => {
-        resetComposer(shouldPreserveInput);
-      });
+      }
     }
-  });
+  );
 
-  const handleInlineBotSelect = useLastCallback((
-    inlineResult: ApiBotInlineResult | ApiBotInlineMediaResult, isSilent?: boolean, isScheduleRequested?: boolean,
-  ) => {
-    if (!currentMessageList && !storyId) {
-      return;
-    }
+  const handleInlineBotSelect = useLastCallback(
+    (
+      inlineResult: ApiBotInlineResult | ApiBotInlineMediaResult,
+      isSilent?: boolean,
+      isScheduleRequested?: boolean
+    ) => {
+      if (!currentMessageList && !storyId) {
+        return;
+      }
 
-    if (isInScheduledList || isScheduleRequested) {
-      requestCalendar((scheduledAt) => {
-        handleMessageSchedule({
+      if (isInScheduledList || isScheduleRequested) {
+        requestCalendar((scheduledAt) => {
+          handleMessageSchedule(
+            {
+              id: inlineResult.id,
+              queryId: inlineResult.queryId,
+              isSilent,
+            },
+            scheduledAt,
+            currentMessageList!
+          );
+        });
+      } else {
+        sendInlineBotResult({
           id: inlineResult.id,
           queryId: inlineResult.queryId,
           isSilent,
-        }, scheduledAt, currentMessageList!);
-      });
-    } else {
-      sendInlineBotResult({
-        id: inlineResult.id,
-        queryId: inlineResult.queryId,
-        isSilent,
-        messageList: currentMessageList!,
+          messageList: currentMessageList!,
+        });
+      }
+
+      const messageInput = document.querySelector<HTMLDivElement>(
+        editableInputCssSelector
+      );
+      if (IS_IOS && messageInput && messageInput === document.activeElement) {
+        applyIosAutoCapitalizationFix(messageInput);
+      }
+
+      clearDraft({ chatId, isLocalOnly: true });
+      requestMeasure(() => {
+        resetComposer();
       });
     }
-
-    const messageInput = document.querySelector<HTMLDivElement>(editableInputCssSelector);
-    if (IS_IOS && messageInput && messageInput === document.activeElement) {
-      applyIosAutoCapitalizationFix(messageInput);
-    }
-
-    clearDraft({ chatId, isLocalOnly: true });
-    requestMeasure(() => {
-      resetComposer();
-    });
-  });
+  );
 
   const handleBotCommandSelect = useLastCallback(() => {
     clearDraft({ chatId, isLocalOnly: true });
@@ -1311,21 +1533,42 @@ const Composer: FC<OwnProps & StateProps> = ({
     }
   });
 
-  const sendSilent = useLastCallback((additionalArgs?: ScheduledMessageArgs) => {
-    if (isInScheduledList) {
-      requestCalendar((scheduledAt) => {
-        handleMessageSchedule({ ...additionalArgs, isSilent: true }, scheduledAt, currentMessageList!);
-      });
-    } else if (additionalArgs && ('sendCompressed' in additionalArgs || 'sendGrouped' in additionalArgs)) {
-      const { sendCompressed = false, sendGrouped = false, isInvertedMedia } = additionalArgs;
-      void handleSendAttachments(sendCompressed, sendGrouped, true, undefined, isInvertedMedia);
-    } else {
-      void handleSend(true);
+  const sendSilent = useLastCallback(
+    (additionalArgs?: ScheduledMessageArgs) => {
+      if (isInScheduledList) {
+        requestCalendar((scheduledAt) => {
+          handleMessageSchedule(
+            { ...additionalArgs, isSilent: true },
+            scheduledAt,
+            currentMessageList!
+          );
+        });
+      } else if (
+        additionalArgs &&
+        ("sendCompressed" in additionalArgs || "sendGrouped" in additionalArgs)
+      ) {
+        const {
+          sendCompressed = false,
+          sendGrouped = false,
+          isInvertedMedia,
+        } = additionalArgs;
+        void handleSendAttachments(
+          sendCompressed,
+          sendGrouped,
+          true,
+          undefined,
+          isInvertedMedia
+        );
+      } else {
+        void handleSend(true);
+      }
     }
-  });
+  );
 
   const handleSendAsMenuOpen = useLastCallback(() => {
-    const messageInput = document.querySelector<HTMLDivElement>(editableInputCssSelector);
+    const messageInput = document.querySelector<HTMLDivElement>(
+      editableInputCssSelector
+    );
 
     if (!isMobile || messageInput !== document.activeElement) {
       closeBotCommandMenu();
@@ -1345,12 +1588,14 @@ const Composer: FC<OwnProps & StateProps> = ({
   useEffect(() => {
     if (!isComposerBlocked) return;
 
-    setHtml('');
+    setHtml("");
   }, [isComposerBlocked, setHtml, attachments]);
 
-  const insertTextAndUpdateCursorAttachmentModal = useLastCallback((text: string) => {
-    insertTextAndUpdateCursor(text, EDITABLE_INPUT_MODAL_ID);
-  });
+  const insertTextAndUpdateCursorAttachmentModal = useLastCallback(
+    (text: string) => {
+      insertTextAndUpdateCursor(text, EDITABLE_INPUT_MODAL_ID);
+    }
+  );
 
   const removeSymbol = useLastCallback((inInputId = editableInputId) => {
     const selection = window.getSelection()!;
@@ -1358,7 +1603,7 @@ const Composer: FC<OwnProps & StateProps> = ({
     if (selection.rangeCount) {
       const selectionRange = selection.getRangeAt(0);
       if (isSelectionInsideInput(selectionRange, inInputId)) {
-        document.execCommand('delete', false);
+        document.execCommand("delete", false);
         return;
       }
     }
@@ -1372,7 +1617,10 @@ const Composer: FC<OwnProps & StateProps> = ({
 
   const handleAllScheduledClick = useLastCallback(() => {
     openThread({
-      chatId, threadId, type: 'scheduled', noForumTopicPanel: true,
+      chatId,
+      threadId,
+      type: "scheduled",
+      noForumTopicPanel: true,
     });
   });
 
@@ -1394,34 +1642,53 @@ const Composer: FC<OwnProps & StateProps> = ({
     }
   }, [isSelectModeActive, enableHover, disableHover, isReady]);
 
-  const withBotMenuButton = isChatWithBot && botMenuButton?.type === 'webApp' && !editingMessage;
+  const withBotMenuButton =
+    isChatWithBot && botMenuButton?.type === "webApp" && !editingMessage;
   const isBotMenuButtonOpen = useDerivedState(() => {
     return withBotMenuButton && !getHtml() && !activeVoiceRecording;
   }, [withBotMenuButton, getHtml, activeVoiceRecording]);
 
   const [timedPlaceholderLangKey, timedPlaceholderDate] = useMemo(() => {
     if (slowMode?.nextSendDate) {
-      return ['SlowModeWait', slowMode.nextSendDate];
+      return ["SlowModeWait", slowMode.nextSendDate];
     }
 
     if (stealthMode?.activeUntil && isInStoryViewer) {
-      return ['StealthModeActiveHint', stealthMode.activeUntil];
+      return ["StealthModeActiveHint", stealthMode.activeUntil];
     }
 
     return [];
   }, [isInStoryViewer, slowMode?.nextSendDate, stealthMode?.activeUntil]);
 
-  const isComposerHasFocus = isBotKeyboardOpen || isSymbolMenuOpen || isEmojiTooltipOpen || isSendAsMenuOpen
-    || isMentionTooltipOpen || isInlineBotTooltipOpen || isBotCommandMenuOpen || isAttachMenuOpen
-    || isStickerTooltipOpen || isChatCommandTooltipOpen || isCustomEmojiTooltipOpen || isBotMenuButtonOpen
-  || isCustomSendMenuOpen || Boolean(activeVoiceRecording) || attachments.length > 0 || isInputHasFocus;
-  const isReactionSelectorOpen = isComposerHasFocus && !isReactionPickerOpen && isInStoryViewer && !isAttachMenuOpen
-    && !isSymbolMenuOpen;
-  const placeholderForForumAsMessages = chat?.isForum && chat?.isForumAsMessages && threadId === MAIN_THREAD_ID
-    ? (replyToTopic
-      ? lang('Chat.InputPlaceholderReplyInTopic', replyToTopic.title)
-      : lang('Message.Placeholder.MessageInGeneral'))
-    : undefined;
+  const isComposerHasFocus =
+    isBotKeyboardOpen ||
+    isSymbolMenuOpen ||
+    isEmojiTooltipOpen ||
+    isSendAsMenuOpen ||
+    isMentionTooltipOpen ||
+    isInlineBotTooltipOpen ||
+    isBotCommandMenuOpen ||
+    isAttachMenuOpen ||
+    isStickerTooltipOpen ||
+    isChatCommandTooltipOpen ||
+    isCustomEmojiTooltipOpen ||
+    isBotMenuButtonOpen ||
+    isCustomSendMenuOpen ||
+    Boolean(activeVoiceRecording) ||
+    attachments.length > 0 ||
+    isInputHasFocus;
+  const isReactionSelectorOpen =
+    isComposerHasFocus &&
+    !isReactionPickerOpen &&
+    isInStoryViewer &&
+    !isAttachMenuOpen &&
+    !isSymbolMenuOpen;
+  const placeholderForForumAsMessages =
+    chat?.isForum && chat?.isForumAsMessages && threadId === MAIN_THREAD_ID
+      ? replyToTopic
+        ? lang("Chat.InputPlaceholderReplyInTopic", replyToTopic.title)
+        : lang("Message.Placeholder.MessageInGeneral")
+      : undefined;
 
   useEffect(() => {
     if (isComposerHasFocus) {
@@ -1435,8 +1702,9 @@ const Composer: FC<OwnProps & StateProps> = ({
     shouldRender: shouldRenderReactionSelector,
     transitionClassNames: reactionSelectorTransitonClassNames,
   } = useShowTransitionDeprecated(isReactionSelectorOpen);
-  const areVoiceMessagesNotAllowed = mainButtonState === MainButtonState.Record
-    && (!canAttachMedia || !canSendVoiceByPrivacy || !canSendVoices);
+  const areVoiceMessagesNotAllowed =
+    mainButtonState === MainButtonState.Record &&
+    (!canAttachMedia || !canSendVoiceByPrivacy || !canSendVoices);
 
   const mainButtonHandler = useLastCallback(() => {
     switch (mainButtonState) {
@@ -1450,7 +1718,7 @@ const Composer: FC<OwnProps & StateProps> = ({
         if (areVoiceMessagesNotAllowed) {
           if (!canSendVoiceByPrivacy) {
             showNotification({
-              message: lang('VoiceMessagesRestrictedByPrivacy', chat?.title),
+              message: lang("VoiceMessagesRestrictedByPrivacy", chat?.title),
             });
           } else if (!canSendVoices) {
             showAllowedMessageTypesNotification({ chatId });
@@ -1472,7 +1740,12 @@ const Composer: FC<OwnProps & StateProps> = ({
           return;
         }
         requestCalendar((scheduledAt) => {
-          handleMessageSchedule({}, scheduledAt, currentMessageList, effect?.id);
+          handleMessageSchedule(
+            {},
+            scheduledAt,
+            currentMessageList,
+            effect?.id
+          );
         });
         break;
       default:
@@ -1487,37 +1760,37 @@ const Composer: FC<OwnProps & StateProps> = ({
   const scheduledMaxDate = new Date();
   scheduledMaxDate.setFullYear(scheduledMaxDate.getFullYear() + 1);
 
-  let sendButtonAriaLabel = 'SendMessage';
+  let sendButtonAriaLabel = "SendMessage";
   switch (mainButtonState) {
     case MainButtonState.Forward:
-      sendButtonAriaLabel = 'Forward';
+      sendButtonAriaLabel = "Forward";
       break;
     case MainButtonState.Edit:
-      sendButtonAriaLabel = 'Save edited message';
+      sendButtonAriaLabel = "Save edited message";
       break;
     case MainButtonState.Record:
       sendButtonAriaLabel = !canAttachMedia
-        ? 'Conversation.DefaultRestrictedMedia'
-        : 'AccDescrVoiceMessage';
+        ? "Conversation.DefaultRestrictedMedia"
+        : "AccDescrVoiceMessage";
   }
 
   const fullClassName = buildClassName(
-    'Composer',
-    !isSelectModeActive && 'shown',
-    isHoverDisabled && 'hover-disabled',
-    isMounted && 'mounted',
-    className,
+    "Composer",
+    !isSelectModeActive && "shown",
+    isHoverDisabled && "hover-disabled",
+    isMounted && "mounted",
+    className
   );
 
   const handleToggleReaction = useLastCallback((reaction: ApiReaction) => {
     let text: string | undefined;
     let entities: ApiMessageEntity[] | undefined;
 
-    if (reaction.type === 'emoji') {
+    if (reaction.type === "emoji") {
       text = reaction.emoticon;
     }
 
-    if (reaction.type === 'custom') {
+    if (reaction.type === "custom") {
       const sticker = getGlobal().customEmojis.byId[reaction.documentId];
       if (!sticker) {
         return;
@@ -1527,7 +1800,9 @@ const Composer: FC<OwnProps & StateProps> = ({
         showCustomEmojiPremiumNotification();
         return;
       }
-      const customEmojiMessage = parseHtmlAsFormattedText(buildCustomEmojiHtml(sticker));
+      const customEmojiMessage = parseHtmlAsFormattedText(
+        buildCustomEmojiHtml(sticker)
+      );
       text = customEmojiMessage.text;
       entities = customEmojiMessage.entities;
     }
@@ -1536,20 +1811,24 @@ const Composer: FC<OwnProps & StateProps> = ({
     closeReactionPicker();
   });
 
-  const handleToggleEffectReaction = useLastCallback((reaction: ApiReaction) => {
-    setReactionEffect({ chatId, threadId, reaction });
+  const handleToggleEffectReaction = useLastCallback(
+    (reaction: ApiReaction) => {
+      setReactionEffect({ chatId, threadId, reaction });
 
-    closeReactionPicker();
-  });
+      closeReactionPicker();
+    }
+  );
 
-  const handleReactionPickerOpen = useLastCallback((position: IAnchorPosition) => {
-    openStoryReactionPicker({
-      peerId: chatId,
-      storyId: storyId!,
-      position,
-      sendAsMessage: true,
-    });
-  });
+  const handleReactionPickerOpen = useLastCallback(
+    (position: IAnchorPosition) => {
+      openStoryReactionPicker({
+        peerId: chatId,
+        storyId: storyId!,
+        position,
+        sendAsMessage: true,
+      });
+    }
+  );
 
   const handleLikeStory = useLastCallback(() => {
     const reaction = sentStoryReaction ? undefined : HEART_REACTION;
@@ -1572,26 +1851,39 @@ const Composer: FC<OwnProps & StateProps> = ({
   });
 
   const handleSendWhenOnline = useLastCallback(() => {
-    handleMessageSchedule({}, SCHEDULED_WHEN_ONLINE, currentMessageList!, effect?.id);
+    handleMessageSchedule(
+      {},
+      SCHEDULED_WHEN_ONLINE,
+      currentMessageList!,
+      effect?.id
+    );
   });
 
   const handleSendScheduledAttachments = useLastCallback(
     (sendCompressed: boolean, sendGrouped: boolean, isInvertedMedia?: true) => {
       requestCalendar((scheduledAt) => {
-        handleMessageSchedule({ sendCompressed, sendGrouped, isInvertedMedia }, scheduledAt, currentMessageList!);
+        handleMessageSchedule(
+          { sendCompressed, sendGrouped, isInvertedMedia },
+          scheduledAt,
+          currentMessageList!
+        );
       });
-    },
+    }
   );
 
   const handleSendSilentAttachments = useLastCallback(
     (sendCompressed: boolean, sendGrouped: boolean, isInvertedMedia?: true) => {
       sendSilent({ sendCompressed, sendGrouped, isInvertedMedia });
-    },
+    }
   );
 
-  const handleRemoveEffect = useLastCallback(() => { saveEffectInDraft({ chatId, threadId, effectId: undefined }); });
+  const handleRemoveEffect = useLastCallback(() => {
+    saveEffectInDraft({ chatId, threadId, effectId: undefined });
+  });
 
-  const handleStopEffect = useLastCallback(() => { hideEffectInComposer({ }); });
+  const handleStopEffect = useLastCallback(() => {
+    hideEffectInComposer({});
+  });
 
   const onSend = useMemo(() => {
     switch (mainButtonState) {
@@ -1604,8 +1896,12 @@ const Composer: FC<OwnProps & StateProps> = ({
     }
   }, [mainButtonState, handleEditComplete]);
 
-  const withBotCommands = isChatWithBot && botMenuButton?.type === 'commands' && !editingMessage
-    && botCommands !== false && !activeVoiceRecording;
+  const withBotCommands =
+    isChatWithBot &&
+    botMenuButton?.type === "commands" &&
+    !editingMessage &&
+    botCommands !== false &&
+    !activeVoiceRecording;
 
   const effectEmoji = areEffectsSupported && effect?.emoticon;
 
@@ -1614,7 +1910,10 @@ const Composer: FC<OwnProps & StateProps> = ({
       {isInMessageList && canAttachMedia && isReady && (
         <DropArea
           isOpen={dropAreaState !== DropAreaState.None}
-          withQuick={dropAreaState === DropAreaState.QuickFile || prevDropAreaState === DropAreaState.QuickFile}
+          withQuick={
+            dropAreaState === DropAreaState.QuickFile ||
+            prevDropAreaState === DropAreaState.QuickFile
+          }
           onHide={onDropHide!}
           onFileSelect={handleFileSelect}
           editingMessage={editingMessage}
@@ -1697,9 +1996,12 @@ const Composer: FC<OwnProps & StateProps> = ({
         onClick={handleBotCommandSelect}
         onClose={closeChatCommandTooltip}
       />
-      <div className={
-        buildClassName('composer-wrapper', isInStoryViewer && 'with-story-tweaks', isNeedPremium && 'is-need-premium')
-      }
+      <div
+        className={buildClassName(
+          "composer-wrapper",
+          isInStoryViewer && "with-story-tweaks",
+          isNeedPremium && "is-need-premium"
+        )}
       >
         {!isNeedPremium && (
           <svg className="svg-appendix" width="9" height="20">
@@ -1713,7 +2015,11 @@ const Composer: FC<OwnProps & StateProps> = ({
                 id="composerAppendix"
               >
                 <feOffset dy="1" in="SourceAlpha" result="shadowOffsetOuter1" />
-                <feGaussianBlur stdDeviation="1" in="shadowOffsetOuter1" result="shadowBlurOuter1" />
+                <feGaussianBlur
+                  stdDeviation="1"
+                  in="shadowOffsetOuter1"
+                  result="shadowBlurOuter1"
+                />
                 <feColorMatrix
                   values="0 0 0 0 0.0621962482 0 0 0 0 0.138574144 0 0 0 0 0.185037364 0 0 0 0.15 0"
                   in="shadowBlurOuter1"
@@ -1721,8 +2027,16 @@ const Composer: FC<OwnProps & StateProps> = ({
               </filter>
             </defs>
             <g fill="none" fill-rule="evenodd">
-              <path d="M6 17H0V0c.193 2.84.876 5.767 2.05 8.782.904 2.325 2.446 4.485 4.625 6.48A1 1 0 016 17z" fill="#000" filter="url(#composerAppendix)" />
-              <path d="M6 17H0V0c.193 2.84.876 5.767 2.05 8.782.904 2.325 2.446 4.485 4.625 6.48A1 1 0 016 17z" fill="#FFF" className="corner" />
+              <path
+                d="M6 17H0V0c.193 2.84.876 5.767 2.05 8.782.904 2.325 2.446 4.485 4.625 6.48A1 1 0 016 17z"
+                fill="#000"
+                filter="url(#composerAppendix)"
+              />
+              <path
+                d="M6 17H0V0c.193 2.84.876 5.767 2.05 8.782.904 2.325 2.446 4.485 4.625 6.48A1 1 0 016 17z"
+                fill="#FFF"
+                className="corner"
+              />
             </g>
           </svg>
         )}
@@ -1744,7 +2058,9 @@ const Composer: FC<OwnProps & StateProps> = ({
             />
             <ComposerEmbeddedMessage
               onClear={handleEmbeddedClear}
-              shouldForceShowEditing={Boolean(shouldForceShowEditing && editingMessage)}
+              shouldForceShowEditing={Boolean(
+                shouldForceShowEditing && editingMessage
+              )}
               chatId={chatId}
               threadId={threadId}
               messageListType={messageListType}
@@ -1758,7 +2074,12 @@ const Composer: FC<OwnProps & StateProps> = ({
             />
           </>
         )}
-        <div className={buildClassName('message-input-wrapper', getPeerColorClass(currentUser))}>
+        <div
+          className={buildClassName(
+            "message-input-wrapper",
+            getPeerColorClass(currentUser)
+          )}
+        >
           {isInMessageList && (
             <>
               {withBotMenuButton && (
@@ -1771,7 +2092,10 @@ const Composer: FC<OwnProps & StateProps> = ({
               )}
               {withBotCommands && (
                 <ResponsiveHoverButton
-                  className={buildClassName('bot-commands', isBotCommandMenuOpen && 'activated')}
+                  className={buildClassName(
+                    "bot-commands",
+                    isBotCommandMenuOpen && "activated"
+                  )}
                   round
                   disabled={botCommands === undefined}
                   color="translucent"
@@ -1785,47 +2109,47 @@ const Composer: FC<OwnProps & StateProps> = ({
                 <Button
                   round
                   color="translucent"
-                  onClick={isSendAsMenuOpen ? closeSendAsMenu : handleSendAsMenuOpen}
-                  ariaLabel={lang('SendMessageAsTitle')}
+                  onClick={
+                    isSendAsMenuOpen ? closeSendAsMenu : handleSendAsMenuOpen
+                  }
+                  ariaLabel={lang("SendMessageAsTitle")}
                   className={buildClassName(
-                    'send-as-button',
-                    shouldAnimateSendAsButtonRef.current && 'appear-animation',
+                    "send-as-button",
+                    shouldAnimateSendAsButtonRef.current && "appear-animation"
                   )}
                 >
-                  <Avatar
-                    peer={sendAsUser || sendAsChat}
-                    size="tiny"
-                  />
+                  <Avatar peer={sendAsUser || sendAsChat} size="tiny" />
                 </Button>
               )}
             </>
           )}
-          {((!isComposerBlocked || canSendGifs || canSendStickers) && !isNeedPremium) && (
-            <SymbolMenuButton
-              chatId={chatId}
-              threadId={threadId}
-              isMobile={isMobile}
-              isReady={isReady}
-              isSymbolMenuOpen={isSymbolMenuOpen}
-              openSymbolMenu={openSymbolMenu}
-              closeSymbolMenu={closeSymbolMenu}
-              canSendStickers={canSendStickers}
-              canSendGifs={canSendGifs}
-              isMessageComposer={isInMessageList}
-              onGifSelect={handleGifSelect}
-              onStickerSelect={handleStickerSelect}
-              onCustomEmojiSelect={handleCustomEmojiSelect}
-              onRemoveSymbol={removeSymbol}
-              onEmojiSelect={insertTextAndUpdateCursor}
-              closeBotCommandMenu={closeBotCommandMenu}
-              closeSendAsMenu={closeSendAsMenu}
-              isSymbolMenuForced={isSymbolMenuForced}
-              canSendPlainText={!isComposerBlocked}
-              inputCssSelector={editableInputCssSelector}
-              idPrefix={type}
-              forceDarkTheme={isInStoryViewer}
-            />
-          )}
+          {(!isComposerBlocked || canSendGifs || canSendStickers) &&
+            !isNeedPremium && (
+              <SymbolMenuButton
+                chatId={chatId}
+                threadId={threadId}
+                isMobile={isMobile}
+                isReady={isReady}
+                isSymbolMenuOpen={isSymbolMenuOpen}
+                openSymbolMenu={openSymbolMenu}
+                closeSymbolMenu={closeSymbolMenu}
+                canSendStickers={canSendStickers}
+                canSendGifs={canSendGifs}
+                isMessageComposer={isInMessageList}
+                onGifSelect={handleGifSelect}
+                onStickerSelect={handleStickerSelect}
+                onCustomEmojiSelect={handleCustomEmojiSelect}
+                onRemoveSymbol={removeSymbol}
+                onEmojiSelect={insertTextAndUpdateCursor}
+                closeBotCommandMenu={closeBotCommandMenu}
+                closeSendAsMenu={closeSendAsMenu}
+                isSymbolMenuForced={isSymbolMenuForced}
+                canSendPlainText={!isComposerBlocked}
+                inputCssSelector={editableInputCssSelector}
+                idPrefix={type}
+                forceDarkTheme={isInStoryViewer}
+              />
+            )}
           <MessageInput
             ref={inputRef}
             id={inputId}
@@ -1839,19 +2163,33 @@ const Composer: FC<OwnProps & StateProps> = ({
             isActive={!hasAttachments}
             getHtml={getHtml}
             placeholder={
-              activeVoiceRecording && windowWidth <= SCREEN_WIDTH_TO_HIDE_PLACEHOLDER
-                ? ''
-                : (!isComposerBlocked
-                  ? (botKeyboardPlaceholder || inputPlaceholder || lang(placeholderForForumAsMessages || 'Message'))
-                  : isInStoryViewer ? lang('StoryRepliesLocked') : lang('Chat.PlaceholderTextNotAllowed'))
+              activeVoiceRecording &&
+              windowWidth <= SCREEN_WIDTH_TO_HIDE_PLACEHOLDER
+                ? ""
+                : !isComposerBlocked
+                ? botKeyboardPlaceholder ||
+                  inputPlaceholder ||
+                  lang(placeholderForForumAsMessages || "Message")
+                : isInStoryViewer
+                ? lang("StoryRepliesLocked")
+                : lang("Chat.PlaceholderTextNotAllowed")
             }
             timedPlaceholderDate={timedPlaceholderDate}
             timedPlaceholderLangKey={timedPlaceholderLangKey}
             forcedPlaceholder={inlineBotHelp}
-            canAutoFocus={isReady && isForCurrentMessageList && !hasAttachments && isInMessageList}
+            canAutoFocus={
+              isReady &&
+              isForCurrentMessageList &&
+              !hasAttachments &&
+              isInMessageList
+            }
             noFocusInterception={hasAttachments}
             shouldSuppressFocus={isMobile && isSymbolMenuOpen}
-            shouldSuppressTextFormatter={isEmojiTooltipOpen || isMentionTooltipOpen || isInlineBotTooltipOpen}
+            shouldSuppressTextFormatter={
+              isEmojiTooltipOpen ||
+              isMentionTooltipOpen ||
+              isInlineBotTooltipOpen
+            }
             onUpdate={setHtml}
             onSend={onSend}
             onSuppressedFocus={closeSymbolMenu}
@@ -1876,22 +2214,26 @@ const Composer: FC<OwnProps & StateProps> = ({
                   <Icon name="schedule" />
                 </Button>
               )}
-              {Boolean(botKeyboardMessageId) && !activeVoiceRecording && !editingMessage && (
-                <ResponsiveHoverButton
-                  className={isBotKeyboardOpen ? 'activated' : ''}
-                  round
-                  color="translucent"
-                  onActivate={openBotKeyboard}
-                  ariaLabel="Open bot command keyboard"
-                >
-                  <Icon name="bot-command" />
-                </ResponsiveHoverButton>
-              )}
+              {Boolean(botKeyboardMessageId) &&
+                !activeVoiceRecording &&
+                !editingMessage && (
+                  <ResponsiveHoverButton
+                    className={isBotKeyboardOpen ? "activated" : ""}
+                    round
+                    color="translucent"
+                    onActivate={openBotKeyboard}
+                    ariaLabel="Open bot command keyboard"
+                  >
+                    <Icon name="bot-command" />
+                  </ResponsiveHoverButton>
+                )}
             </>
           )}
           {activeVoiceRecording && Boolean(currentRecordTime) && (
             <span className="recording-state">
-              {formatVoiceRecordDuration(currentRecordTime - startRecordTimeRef.current!)}
+              {formatVoiceRecordDuration(
+                currentRecordTime - startRecordTimeRef.current!
+              )}
             </span>
           )}
           {!isNeedPremium && (
@@ -1963,10 +2305,10 @@ const Composer: FC<OwnProps & StateProps> = ({
       </div>
       {canSendOneTimeMedia && activeVoiceRecording && (
         <Button
-          className={buildClassName('view-once', isViewOnceEnabled && 'active')}
+          className={buildClassName("view-once", isViewOnceEnabled && "active")}
           round
           color="secondary"
-          ariaLabel={lang('Chat.PlayOnceVoiceMessageTooltip')}
+          ariaLabel={lang("Chat.PlayOnceVoiceMessageTooltip")}
           onClick={toogleViewOnceEnabled}
         >
           <Icon name="view-once" />
@@ -1992,7 +2334,7 @@ const Composer: FC<OwnProps & StateProps> = ({
           onClick={handleLikeStory}
           onContextMenu={handleStoryPickerContextMenu}
           onMouseDown={handleBeforeStoryPickerContextMenu}
-          ariaLabel={lang('AccDescrLike')}
+          ariaLabel={lang("AccDescrLike")}
           ref={storyReactionRef}
         >
           {sentStoryReaction && (
@@ -2004,7 +2346,12 @@ const Composer: FC<OwnProps & StateProps> = ({
             />
           )}
           {(!sentStoryReaction || isSentStoryReactionHeart) && (
-            <Icon name="heart" className={buildClassName(isSentStoryReactionHeart && 'story-reaction-heart')} />
+            <Icon
+              name="heart"
+              className={buildClassName(
+                isSentStoryReactionHeart && "story-reaction-heart"
+              )}
+            />
           )}
         </Button>
       )}
@@ -2014,9 +2361,9 @@ const Composer: FC<OwnProps & StateProps> = ({
         color="secondary"
         className={buildClassName(
           mainButtonState,
-          'main-button',
-          !isReady && 'not-ready',
-          activeVoiceRecording && 'recording',
+          "main-button",
+          !isReady && "not-ready",
+          activeVoiceRecording && "recording"
         )}
         disabled={areVoiceMessagesNotAllowed}
         allowDisabledClick
@@ -2024,7 +2371,9 @@ const Composer: FC<OwnProps & StateProps> = ({
         ariaLabel={lang(sendButtonAriaLabel)}
         onClick={mainButtonHandler}
         onContextMenu={
-          mainButtonState === MainButtonState.Send && canShowCustomSendMenu ? handleContextMenu : undefined
+          mainButtonState === MainButtonState.Send && canShowCustomSendMenu
+            ? handleContextMenu
+            : undefined
         }
       >
         <Icon name="send" />
@@ -2074,157 +2423,220 @@ const Composer: FC<OwnProps & StateProps> = ({
   );
 };
 
-export default memo(withGlobal<OwnProps>(
-  (global, {
-    chatId, threadId, storyId, messageListType, isMobile, type,
-  }): StateProps => {
-    const chat = selectChat(global, chatId);
-    const chatBot = !isSystemBot(chatId) ? selectBot(global, chatId) : undefined;
-    const isChatWithBot = Boolean(chatBot);
-    const isChatWithSelf = selectIsChatWithSelf(global, chatId);
-    const isChatWithUser = isUserId(chatId);
-    const userFullInfo = isChatWithUser ? selectUserFullInfo(global, chatId) : undefined;
-    const chatFullInfo = !isChatWithUser ? selectChatFullInfo(global, chatId) : undefined;
-    const messageWithActualBotKeyboard = (isChatWithBot || !isChatWithUser)
-      && selectNewestMessageWithBotKeyboardButtons(global, chatId, threadId);
-    const {
-      language, shouldSuggestStickers, shouldSuggestCustomEmoji, shouldUpdateStickerSetOrder,
-    } = global.settings.byKey;
-    const baseEmojiKeywords = global.emojiKeywords[BASE_EMOJI_KEYWORD_LANG];
-    const emojiKeywords = language !== BASE_EMOJI_KEYWORD_LANG ? global.emojiKeywords[language] : undefined;
-    const botKeyboardMessageId = messageWithActualBotKeyboard ? messageWithActualBotKeyboard.id : undefined;
-    const keyboardMessage = botKeyboardMessageId ? selectChatMessage(global, chatId, botKeyboardMessageId) : undefined;
-    const { currentUserId } = global;
-    const currentUser = selectUser(global, currentUserId!)!;
-    const defaultSendAsId = chatFullInfo ? chatFullInfo?.sendAsId || currentUserId : undefined;
-    const sendAsId = chat?.sendAsPeerIds && defaultSendAsId && (
-      chat.sendAsPeerIds.some((peer) => peer.id === defaultSendAsId)
-        ? defaultSendAsId
-        : (chat?.adminRights?.anonymous ? chat?.id : undefined)
-    );
-    const sendAsUser = sendAsId ? selectUser(global, sendAsId) : undefined;
-    const sendAsChat = !sendAsUser && sendAsId ? selectChat(global, sendAsId) : undefined;
-    const requestedDraft = selectRequestedDraft(global, chatId);
-    const requestedDraftFiles = selectRequestedDraftFiles(global, chatId);
+export default memo(
+  withGlobal<OwnProps>(
+    (
+      global,
+      { chatId, threadId, storyId, messageListType, isMobile, type }
+    ): StateProps => {
+      const chat = selectChat(global, chatId);
+      const chatBot = !isSystemBot(chatId)
+        ? selectBot(global, chatId)
+        : undefined;
+      const isChatWithBot = Boolean(chatBot);
+      const isChatWithSelf = selectIsChatWithSelf(global, chatId);
+      const isChatWithUser = isUserId(chatId);
+      const userFullInfo = isChatWithUser
+        ? selectUserFullInfo(global, chatId)
+        : undefined;
+      const chatFullInfo = !isChatWithUser
+        ? selectChatFullInfo(global, chatId)
+        : undefined;
+      const messageWithActualBotKeyboard =
+        (isChatWithBot || !isChatWithUser) &&
+        selectNewestMessageWithBotKeyboardButtons(global, chatId, threadId);
+      const {
+        language,
+        shouldSuggestStickers,
+        shouldSuggestCustomEmoji,
+        shouldUpdateStickerSetOrder,
+      } = global.settings.byKey;
+      const baseEmojiKeywords = global.emojiKeywords[BASE_EMOJI_KEYWORD_LANG];
+      const emojiKeywords =
+        language !== BASE_EMOJI_KEYWORD_LANG
+          ? global.emojiKeywords[language]
+          : undefined;
+      const botKeyboardMessageId = messageWithActualBotKeyboard
+        ? messageWithActualBotKeyboard.id
+        : undefined;
+      const keyboardMessage = botKeyboardMessageId
+        ? selectChatMessage(global, chatId, botKeyboardMessageId)
+        : undefined;
+      const { currentUserId } = global;
+      const currentUser = selectUser(global, currentUserId!)!;
+      const defaultSendAsId = chatFullInfo
+        ? chatFullInfo?.sendAsId || currentUserId
+        : undefined;
+      const sendAsId =
+        chat?.sendAsPeerIds &&
+        defaultSendAsId &&
+        (chat.sendAsPeerIds.some((peer) => peer.id === defaultSendAsId)
+          ? defaultSendAsId
+          : chat?.adminRights?.anonymous
+          ? chat?.id
+          : undefined);
+      const sendAsUser = sendAsId ? selectUser(global, sendAsId) : undefined;
+      const sendAsChat =
+        !sendAsUser && sendAsId ? selectChat(global, sendAsId) : undefined;
+      const requestedDraft = selectRequestedDraft(global, chatId);
+      const requestedDraftFiles = selectRequestedDraftFiles(global, chatId);
 
-    const tabState = selectTabState(global);
-    const isStoryViewerOpen = Boolean(tabState.storyViewer.storyId);
+      const tabState = selectTabState(global);
+      const isStoryViewerOpen = Boolean(tabState.storyViewer.storyId);
 
-    const currentMessageList = selectCurrentMessageList(global);
-    const isForCurrentMessageList = chatId === currentMessageList?.chatId
-      && threadId === currentMessageList?.threadId
-      && messageListType === currentMessageList?.type
-      && !isStoryViewerOpen;
-    const user = selectUser(global, chatId);
-    const canSendVoiceByPrivacy = (user && !userFullInfo?.noVoiceMessages) ?? true;
-    const slowMode = chatFullInfo?.slowMode;
-    const isCurrentUserPremium = selectIsCurrentUserPremium(global);
+      const currentMessageList = selectCurrentMessageList(global);
+      const isForCurrentMessageList =
+        chatId === currentMessageList?.chatId &&
+        threadId === currentMessageList?.threadId &&
+        messageListType === currentMessageList?.type &&
+        !isStoryViewerOpen;
+      const user = selectUser(global, chatId);
+      const canSendVoiceByPrivacy =
+        (user && !userFullInfo?.noVoiceMessages) ?? true;
+      const slowMode = chatFullInfo?.slowMode;
+      const isCurrentUserPremium = selectIsCurrentUserPremium(global);
 
-    const editingDraft = messageListType === 'scheduled'
-      ? selectEditingScheduledDraft(global, chatId)
-      : selectEditingDraft(global, chatId, threadId);
+      const editingDraft =
+        messageListType === "scheduled"
+          ? selectEditingScheduledDraft(global, chatId)
+          : selectEditingDraft(global, chatId, threadId);
 
-    const story = storyId && selectPeerStory(global, chatId, storyId);
-    const sentStoryReaction = story && 'sentReaction' in story ? story.sentReaction : undefined;
-    const draft = selectDraft(global, chatId, threadId);
-    const replyToMessage = draft?.replyInfo
-      ? selectChatMessage(global, chatId, draft.replyInfo.replyToMsgId)
-      : undefined;
-    const replyToTopic = chat?.isForum && chat.isForumAsMessages && threadId === MAIN_THREAD_ID && replyToMessage
-      ? selectTopicFromMessage(global, replyToMessage)
-      : undefined;
-    const isInScheduledList = messageListType === 'scheduled';
+      const story = storyId && selectPeerStory(global, chatId, storyId);
+      const sentStoryReaction =
+        story && "sentReaction" in story ? story.sentReaction : undefined;
+      const draft = selectDraft(global, chatId, threadId);
+      const replyToMessage = draft?.replyInfo
+        ? selectChatMessage(global, chatId, draft.replyInfo.replyToMsgId)
+        : undefined;
+      const replyToTopic =
+        chat?.isForum &&
+        chat.isForumAsMessages &&
+        threadId === MAIN_THREAD_ID &&
+        replyToMessage
+          ? selectTopicFromMessage(global, replyToMessage)
+          : undefined;
+      const isInScheduledList = messageListType === "scheduled";
 
-    const canSendQuickReplies = isChatWithUser && !isChatWithBot && !isInScheduledList && !isChatWithSelf;
+      const canSendQuickReplies =
+        isChatWithUser &&
+        !isChatWithBot &&
+        !isInScheduledList &&
+        !isChatWithSelf;
 
-    const noWebPage = selectNoWebPage(global, chatId, threadId);
+      const noWebPage = selectNoWebPage(global, chatId, threadId);
 
-    const areEffectsSupported = isChatWithUser && !isChatWithBot
-    && !isInScheduledList && !isChatWithSelf && type !== 'story' && chatId !== SERVICE_NOTIFICATIONS_USER_ID;
-    const canPlayEffect = selectPerformanceSettingsValue(global, 'stickerEffects');
-    const shouldPlayEffect = tabState.shouldPlayEffectInComposer;
-    const effectId = areEffectsSupported && draft?.effectId;
-    const effect = effectId ? global.availableEffectById[effectId] : undefined;
-    const effectReactions = global.reactions.effectReactions;
+      const areEffectsSupported =
+        isChatWithUser &&
+        !isChatWithBot &&
+        !isInScheduledList &&
+        !isChatWithSelf &&
+        type !== "story" &&
+        chatId !== SERVICE_NOTIFICATIONS_USER_ID;
+      const canPlayEffect = selectPerformanceSettingsValue(
+        global,
+        "stickerEffects"
+      );
+      const shouldPlayEffect = tabState.shouldPlayEffectInComposer;
+      const effectId = areEffectsSupported && draft?.effectId;
+      const effect = effectId
+        ? global.availableEffectById[effectId]
+        : undefined;
+      const effectReactions = global.reactions.effectReactions;
 
-    const maxMessageLength = global.config?.maxMessageLength || DEFAULT_MAX_MESSAGE_LENGTH;
+      const maxMessageLength =
+        global.config?.maxMessageLength || DEFAULT_MAX_MESSAGE_LENGTH;
 
-    return {
-      availableReactions: global.reactions.availableReactions,
-      topReactions: type === 'story' ? global.reactions.topReactions : undefined,
-      isOnActiveTab: !tabState.isBlurred,
-      editingMessage: selectEditingMessage(global, chatId, threadId, messageListType),
-      draft,
-      chat,
-      isChatWithBot,
-      isChatWithSelf,
-      isForCurrentMessageList,
-      canScheduleUntilOnline: selectCanScheduleUntilOnline(global, chatId),
-      isChannel: chat ? isChatChannel(chat) : undefined,
-      isRightColumnShown: selectIsRightColumnShown(global, isMobile),
-      isSelectModeActive: selectIsInSelectMode(global),
-      withScheduledButton: (
-        messageListType === 'thread'
-        && (userFullInfo || chatFullInfo)?.hasScheduledMessages
-      ),
-      isInScheduledList,
-      botKeyboardMessageId,
-      botKeyboardPlaceholder: keyboardMessage?.keyboardPlaceholder,
-      isForwarding: chatId === tabState.forwardMessages.toChatId,
-      pollModal: tabState.pollModal,
-      stickersForEmoji: global.stickers.forEmoji.stickers,
-      customEmojiForEmoji: global.customEmojis.forEmoji.stickers,
-      chatFullInfo,
-      topInlineBotIds: global.topInlineBots?.userIds,
-      currentUserId,
-      currentUser,
-      contentToBeScheduled: tabState.contentToBeScheduled,
-      shouldSuggestStickers,
-      shouldSuggestCustomEmoji,
-      shouldUpdateStickerSetOrder,
-      recentEmojis: global.recentEmojis,
-      baseEmojiKeywords: baseEmojiKeywords?.keywords,
-      emojiKeywords: emojiKeywords?.keywords,
-      inlineBots: tabState.inlineBots.byUsername,
-      isInlineBotLoading: tabState.inlineBots.isLoading,
-      botCommands: userFullInfo ? (userFullInfo.botInfo?.commands || false) : undefined,
-      botMenuButton: userFullInfo?.botInfo?.menuButton,
-      sendAsUser,
-      sendAsChat,
-      sendAsId,
-      editingDraft,
-      requestedDraft,
-      requestedDraftFiles,
-      attachBots: global.attachMenu.bots,
-      attachMenuPeerType: selectChatType(global, chatId),
-      theme: selectTheme(global),
-      fileSizeLimit: selectCurrentLimit(global, 'uploadMaxFileparts') * MAX_UPLOAD_FILEPART_SIZE,
-      captionLimit: selectCurrentLimit(global, 'captionLength'),
-      isCurrentUserPremium,
-      canSendVoiceByPrivacy,
-      attachmentSettings: global.attachmentSettings,
-      slowMode,
-      currentMessageList,
-      isReactionPickerOpen: selectIsReactionPickerOpen(global),
-      canBuyPremium: !isCurrentUserPremium && !selectIsPremiumPurchaseBlocked(global),
-      canPlayAnimatedEmojis: selectCanPlayAnimatedEmojis(global),
-      canSendOneTimeMedia: !isChatWithSelf && isChatWithUser && !isChatWithBot && !isInScheduledList,
-      shouldCollectDebugLogs: global.settings.byKey.shouldCollectDebugLogs,
-      sentStoryReaction,
-      stealthMode: global.stories.stealthMode,
-      replyToTopic,
-      quickReplyMessages: global.quickReplies.messagesById,
-      quickReplies: global.quickReplies.byId,
-      canSendQuickReplies,
-      noWebPage,
-      webPagePreview: selectTabState(global).webPagePreview,
-      isContactRequirePremium: userFullInfo?.isContactRequirePremium,
-      effect,
-      effectReactions,
-      areEffectsSupported,
-      canPlayEffect,
-      shouldPlayEffect,
-      maxMessageLength,
-    };
-  },
-)(Composer));
+      return {
+        availableReactions: global.reactions.availableReactions,
+        topReactions:
+          type === "story" ? global.reactions.topReactions : undefined,
+        isOnActiveTab: !tabState.isBlurred,
+        editingMessage: selectEditingMessage(
+          global,
+          chatId,
+          threadId,
+          messageListType
+        ),
+        draft,
+        chat,
+        isChatWithBot,
+        isChatWithSelf,
+        isForCurrentMessageList,
+        canScheduleUntilOnline: selectCanScheduleUntilOnline(global, chatId),
+        isChannel: chat ? isChatChannel(chat) : undefined,
+        isRightColumnShown: selectIsRightColumnShown(global, isMobile),
+        isSelectModeActive: selectIsInSelectMode(global),
+        withScheduledButton:
+          messageListType === "thread" &&
+          (userFullInfo || chatFullInfo)?.hasScheduledMessages,
+        isInScheduledList,
+        botKeyboardMessageId,
+        botKeyboardPlaceholder: keyboardMessage?.keyboardPlaceholder,
+        isForwarding: chatId === tabState.forwardMessages.toChatId,
+        pollModal: tabState.pollModal,
+        stickersForEmoji: global.stickers.forEmoji.stickers,
+        customEmojiForEmoji: global.customEmojis.forEmoji.stickers,
+        chatFullInfo,
+        topInlineBotIds: global.topInlineBots?.userIds,
+        currentUserId,
+        currentUser,
+        contentToBeScheduled: tabState.contentToBeScheduled,
+        shouldSuggestStickers,
+        shouldSuggestCustomEmoji,
+        shouldUpdateStickerSetOrder,
+        recentEmojis: global.recentEmojis,
+        baseEmojiKeywords: baseEmojiKeywords?.keywords,
+        emojiKeywords: emojiKeywords?.keywords,
+        inlineBots: tabState.inlineBots.byUsername,
+        isInlineBotLoading: tabState.inlineBots.isLoading,
+        botCommands: userFullInfo
+          ? userFullInfo.botInfo?.commands || false
+          : undefined,
+        botMenuButton: userFullInfo?.botInfo?.menuButton,
+        sendAsUser,
+        sendAsChat,
+        sendAsId,
+        editingDraft,
+        requestedDraft,
+        requestedDraftFiles,
+        attachBots: global.attachMenu.bots,
+        attachMenuPeerType: selectChatType(global, chatId),
+        theme: selectTheme(global),
+        fileSizeLimit:
+          selectCurrentLimit(global, "uploadMaxFileparts") *
+          MAX_UPLOAD_FILEPART_SIZE,
+        captionLimit: selectCurrentLimit(global, "captionLength"),
+        isCurrentUserPremium,
+        canSendVoiceByPrivacy,
+        attachmentSettings: global.attachmentSettings,
+        slowMode,
+        currentMessageList,
+        isReactionPickerOpen: selectIsReactionPickerOpen(global),
+        canBuyPremium:
+          !isCurrentUserPremium && !selectIsPremiumPurchaseBlocked(global),
+        canPlayAnimatedEmojis: selectCanPlayAnimatedEmojis(global),
+        canSendOneTimeMedia:
+          !isChatWithSelf &&
+          isChatWithUser &&
+          !isChatWithBot &&
+          !isInScheduledList,
+        shouldCollectDebugLogs: global.settings.byKey.shouldCollectDebugLogs,
+        sentStoryReaction,
+        stealthMode: global.stories.stealthMode,
+        replyToTopic,
+        quickReplyMessages: global.quickReplies.messagesById,
+        quickReplies: global.quickReplies.byId,
+        canSendQuickReplies,
+        noWebPage,
+        webPagePreview: selectTabState(global).webPagePreview,
+        isContactRequirePremium: userFullInfo?.isContactRequirePremium,
+        effect,
+        effectReactions,
+        areEffectsSupported,
+        canPlayEffect,
+        shouldPlayEffect,
+        maxMessageLength,
+      };
+    }
+  )(Composer)
+);

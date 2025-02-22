@@ -1,5 +1,38 @@
 @use "../../../styles/mixins";
 
+@media (min-width: 1000px) {
+  .blacky {
+    background-color: rgb(33, 33, 33);
+    color: rgb(113, 117, 121);
+    height: 60px;
+    width: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin-left: 0;
+    padding-left: 0;
+    z-index: 1000;
+  }
+  .blackySleepy {
+    background-color: rgb(255, 255, 255);
+    color: rgb(113, 117, 121);
+    height: 60px;
+    width: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin-left: 0;
+    padding-left: 0;
+    z-index: 1000;
+  }
+}
+
 #LeftMainHeader {
   position: relative;
 
@@ -14,16 +47,15 @@
     z-index: 2;
 
     &.right-aligned {
-      transform:
-        translateX(
-          calc(
-            clamp(
+      transform: translateX(
+        calc(
+          clamp(
               var(--left-column-min-width),
               var(--left-column-width),
               var(--left-column-max-width)
             ) - 4.375rem
-          )
-        );
+        )
+      );
     }
 
     &.disable-transition {
@@ -117,7 +149,6 @@
   }
 
   .emoji-status {
-    overflow: visible;
     --custom-emoji-size: 1.5rem;
     color: var(--color-primary);
   }
@@ -153,4 +184,15 @@
       right: -0.125rem;
     }
   }
+  @media (min-width: 1000px) {
+    .SearchInput {
+      margin-left: 90px;
+    }
+    .SearchInput.SearchInputSleepy {
+      margin-left: 75px;
+    }
+  }
+}
+.left-header.Thick {
+  padding-left: 100px;
 }

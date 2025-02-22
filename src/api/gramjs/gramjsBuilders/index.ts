@@ -1,6 +1,9 @@
-import BigInt from 'big-integer';
-import { Api as GramJs } from '../../../lib/gramjs';
-import { generateRandomBytes, readBigIntFromBuffer } from '../../../lib/gramjs/Helpers';
+import BigInt from "big-integer";
+import { Api as GramJs } from "../../../lib/gramjs";
+import {
+  generateRandomBytes,
+  readBigIntFromBuffer,
+} from "../../../lib/gramjs/Helpers";
 
 import type {
   ApiBotApp,
@@ -8,7 +11,6 @@ import type {
   ApiChatBannedRights,
   ApiChatFolder,
   ApiChatReactions,
-  ApiEmojiStatusType,
   ApiFormattedText,
   ApiGroupCall,
   ApiInputPrivacyRules,
@@ -31,78 +33,81 @@ import type {
   ApiStorySkipped,
   ApiThemeParameters,
   ApiVideo,
-} from '../../types';
-import {
-  ApiMessageEntityTypes,
-} from '../../types';
+} from "../../types";
+import { ApiMessageEntityTypes } from "../../types";
 
-import { CHANNEL_ID_LENGTH, DEFAULT_STATUS_ICON_ID } from '../../../config';
-import { pick } from '../../../util/iteratees';
-import { deserializeBytes } from '../helpers/misc';
-import localDb from '../localDb';
+import { CHANNEL_ID_LENGTH, DEFAULT_STATUS_ICON_ID } from "../../../config";
+import { pick } from "../../../util/iteratees";
+import { deserializeBytes } from "../helpers/misc";
+import localDb from "../localDb";
 
 function checkIfChannelId(id: string) {
-  return id.length === CHANNEL_ID_LENGTH && id.startsWith('-1');
+  return id.length === CHANNEL_ID_LENGTH && id.startsWith("-1");
 }
 
 export function getEntityTypeById(chatOrUserId: string) {
-  if (!chatOrUserId.startsWith('-')) {
-    return 'user';
+  if (!chatOrUserId.startsWith("-")) {
+    return "user";
   } else if (checkIfChannelId(chatOrUserId)) {
-    return 'channel';
+    return "channel";
   } else {
-    return 'chat';
+    return "chat";
   }
 }
 
 export function buildPeer(chatOrUserId: string): GramJs.TypePeer {
   const type = getEntityTypeById(chatOrUserId);
 
-  if (type === 'user') {
+  if (type === "user") {
     return new GramJs.PeerUser({
-      userId: buildMtpPeerId(chatOrUserId, 'user'),
+      userId: buildMtpPeerId(chatOrUserId, "user"),
     });
-  } else if (type === 'channel') {
+  } else if (type === "channel") {
     return new GramJs.PeerChannel({
-      channelId: buildMtpPeerId(chatOrUserId, 'channel'),
+      channelId: buildMtpPeerId(chatOrUserId, "channel"),
     });
   } else {
     return new GramJs.PeerChat({
-      chatId: buildMtpPeerId(chatOrUserId, 'chat'),
+      chatId: buildMtpPeerId(chatOrUserId, "chat"),
     });
   }
 }
 
-export function buildInputPeer(chatOrUserId: string, accessHash?: string): GramJs.TypeInputPeer {
+export function buildInputPeer(
+  chatOrUserId: string,
+  accessHash?: string
+): GramJs.TypeInputPeer {
   const type = getEntityTypeById(chatOrUserId);
 
-  if (type === 'user') {
+  if (type === "user") {
     return new GramJs.InputPeerUser({
-      userId: buildMtpPeerId(chatOrUserId, 'user'),
+      userId: buildMtpPeerId(chatOrUserId, "user"),
       accessHash: BigInt(accessHash!),
     });
-  } else if (type === 'channel') {
+  } else if (type === "channel") {
     return new GramJs.InputPeerChannel({
-      channelId: buildMtpPeerId(chatOrUserId, 'channel'),
+      channelId: buildMtpPeerId(chatOrUserId, "channel"),
       accessHash: BigInt(accessHash!),
     });
   } else {
     return new GramJs.InputPeerChat({
-      chatId: buildMtpPeerId(chatOrUserId, 'chat'),
+      chatId: buildMtpPeerId(chatOrUserId, "chat"),
     });
   }
 }
 
-export function buildInputPeerFromLocalDb(chatOrUserId: string): GramJs.TypeInputPeer | undefined {
+export function buildInputPeerFromLocalDb(
+  chatOrUserId: string
+): GramJs.TypeInputPeer | undefined {
   const type = getEntityTypeById(chatOrUserId);
   let accessHash: BigInt.BigInteger | undefined;
 
-  if (type === 'user') {
+  if (type === "user") {
     accessHash = localDb.users[chatOrUserId]?.accessHash;
     if (!accessHash) {
       return undefined;
     }
-  } else if (type === 'channel') {
+  } else if (type === "channel") {
     accessHash = (localDb.chats[chatOrUserId] as GramJs.Channel)?.accessHash;
     if (!accessHash) {
       return undefined;
@@ -115,18 +120,18 @@ export function buildInputPeerFromLocalDb(chatOrUserId: string): GramJs.TypeInpu
 export function buildInputEntity(chatOrUserId: string, accessHash?: string) {
   const type = getEntityTypeById(chatOrUserId);
 
-  if (type === 'user') {
+  if (type === "user") {
     return new GramJs.InputUser({
-      userId: buildMtpPeerId(chatOrUserId, 'user'),
+      userId: buildMtpPeerId(chatOrUserId, "user"),
       accessHash: BigInt(accessHash!),
     });
-  } else if (type === 'channel') {
+  } else if (type === "channel") {
     return new GramJs.InputChannel({
-      channelId: buildMtpPeerId(chatOrUserId, 'channel'),
+      channelId: buildMtpPeerId(chatOrUserId, "channel"),
       accessHash: BigInt(accessHash!),
     });
   } else {
-    return buildMtpPeerId(chatOrUserId, 'chat');
+    return buildMtpPeerId(chatOrUserId, "chat");
   }
 }
 
@@ -150,11 +155,9 @@ export function buildInputDocument(media: ApiSticker | ApiVideo) {
     return undefined;
   }
 
-  return new GramJs.InputDocument(pick(document, [
-    'id',
-    'accessHash',
-    'fileReference',
-  ]));
+  return new GramJs.InputDocument(
+    pick(document, ["id", "accessHash", "fileReference"])
+  );
 }
 
 export function buildInputMediaDocument(media: ApiSticker | ApiVideo) {
@@ -167,7 +170,10 @@ export function buildInputMediaDocument(media: ApiSticker | ApiVideo) {
   return new GramJs.InputMediaDocument({ id: inputDocument });
 }
 
-export function buildInputPoll(pollParams: ApiNewPoll, randomId: BigInt.BigInteger) {
+export function buildInputPoll(
+  pollParams: ApiNewPoll,
+  randomId: BigInt.BigInteger
+) {
   const { summary, quiz } = pollParams;
 
   const poll = new GramJs.Poll({
@@ -190,7 +196,9 @@ export function buildInputPoll(pollParams: ApiNewPoll, randomId: BigInt.BigInteg
 
   const correctAnswers = quiz.correctAnswers.map(deserializeBytes);
   const { solution } = quiz;
-  const solutionEntities = quiz.solutionEntities ? quiz.solutionEntities.map(buildMtpMessageEntity) : [];
+  const solutionEntities = quiz.solutionEntities
+    ? quiz.solutionEntities.map(buildMtpMessageEntity)
+    : [];
 
   return new GramJs.InputMediaPoll({
     poll,
@@ -220,13 +228,17 @@ export function buildInputPollFromExisting(poll: ApiPoll, shouldClose = false) {
       closePeriod: poll.summary.closePeriod,
       closed: shouldClose ? true : poll.summary.closed,
     }),
-    correctAnswers: poll.results.results?.filter((o) => o.isCorrect).map((o) => deserializeBytes(o.option)),
+    correctAnswers: poll.results.results
+      ?.filter((o) => o.isCorrect)
+      .map((o) => deserializeBytes(o.option)),
     solution: poll.results.solution,
     solutionEntities: poll.results.solutionEntities?.map(buildMtpMessageEntity),
   });
 }
 
-export function buildFilterFromApiFolder(folder: ApiChatFolder): GramJs.DialogFilter | GramJs.DialogFilterChatlist {
+export function buildFilterFromApiFolder(
+  folder: ApiChatFolder
+): GramJs.DialogFilter | GramJs.DialogFilterChatlist {
   const {
     emoticon,
     contacts,
@@ -314,7 +326,7 @@ export function generateRandomInt() {
 export function buildMessageFromUpdate(
   id: number,
   chatId: string,
-  update: GramJs.UpdateShortSentMessage | GramJs.UpdateServiceNotification,
+  update: GramJs.UpdateShortSentMessage | GramJs.UpdateServiceNotification
 ) {
   // This is not a proper message, but we only need these fields for downloading media through `localDb`.
   return new GramJs.Message({
@@ -325,12 +337,12 @@ export function buildMessageFromUpdate(
   } as GramJs.Message);
 }
 
-export function buildMtpMessageEntity(entity: ApiMessageEntity): GramJs.TypeMessageEntity {
-  const {
-    type, offset, length,
-  } = entity;
+export function buildMtpMessageEntity(
+  entity: ApiMessageEntity
+): GramJs.TypeMessageEntity {
+  const { type, offset, length } = entity;
 
-  const user = 'userId' in entity ? localDb.users[entity.userId] : undefined;
+  const user = "userId" in entity ? localDb.users[entity.userId] : undefined;
 
   switch (type) {
     case ApiMessageEntityTypes.Bold:
@@ -344,11 +356,19 @@ export function buildMtpMessageEntity(entity: ApiMessageEntity): GramJs.TypeMess
     case ApiMessageEntityTypes.Code:
       return new GramJs.MessageEntityCode({ offset, length });
     case ApiMessageEntityTypes.Pre:
-      return new GramJs.MessageEntityPre({ offset, length, language: entity.language || '' });
+      return new GramJs.MessageEntityPre({
+        offset,
+        length,
+        language: entity.language || "",
+      });
     case ApiMessageEntityTypes.Blockquote:
       return new GramJs.MessageEntityBlockquote({ offset, length });
     case ApiMessageEntityTypes.TextUrl:
-      return new GramJs.MessageEntityTextUrl({ offset, length, url: entity.url });
+      return new GramJs.MessageEntityTextUrl({
+        offset,
+        length,
+        url: entity.url,
+      });
     case ApiMessageEntityTypes.Url:
       return new GramJs.MessageEntityUrl({ offset, length });
     case ApiMessageEntityTypes.Hashtag:
@@ -357,12 +377,19 @@ export function buildMtpMessageEntity(entity: ApiMessageEntity): GramJs.TypeMess
       return new GramJs.InputMessageEntityMentionName({
         offset,
         length,
-        userId: new GramJs.InputUser({ userId: BigInt(user!.id), accessHash: user!.accessHash! }),
+        userId: new GramJs.InputUser({
+          userId: BigInt(user!.id),
+          accessHash: user!.accessHash!,
+        }),
       });
     case ApiMessageEntityTypes.Spoiler:
       return new GramJs.MessageEntitySpoiler({ offset, length });
     case ApiMessageEntityTypes.CustomEmoji:
-      return new GramJs.MessageEntityCustomEmoji({ offset, length, documentId: BigInt(entity.documentId) });
+      return new GramJs.MessageEntityCustomEmoji({
+        offset,
+        length,
+        documentId: BigInt(entity.documentId),
+      });
     default:
       return new GramJs.MessageEntityUnknown({ offset, length });
   }
@@ -388,11 +415,9 @@ export function buildInputPhoto(photo: ApiPhoto) {
     return undefined;
   }
 
-  return new GramJs.InputPhoto(pick(localPhoto, [
-    'id',
-    'accessHash',
-    'fileReference',
-  ]));
+  return new GramJs.InputPhoto(
+    pick(localPhoto, ["id", "accessHash", "fileReference"])
+  );
 }
 
 export function buildInputContact({
@@ -414,7 +439,7 @@ export function buildInputContact({
 
 export function buildChatBannedRights(
   bannedRights: ApiChatBannedRights,
-  untilDate = 0,
+  untilDate = 0
 ) {
   return new GramJs.ChatBannedRights({
     ...bannedRights,
@@ -422,9 +447,7 @@ export function buildChatBannedRights(
   });
 }
 
-export function buildChatAdminRights(
-  adminRights: ApiChatAdminRights,
-) {
+export function buildChatAdminRights(adminRights: ApiChatAdminRights) {
   return new GramJs.ChatAdminRights(adminRights);
 }
 
@@ -440,40 +463,40 @@ export function buildShippingInfo(info: GramJs.PaymentRequestedInfo) {
 
 export function buildInputPrivacyKey(privacyKey: ApiPrivacyKey) {
   switch (privacyKey) {
-    case 'phoneNumber':
+    case "phoneNumber":
       return new GramJs.InputPrivacyKeyPhoneNumber();
 
-    case 'addByPhone':
+    case "addByPhone":
       return new GramJs.InputPrivacyKeyAddedByPhone();
 
-    case 'lastSeen':
+    case "lastSeen":
       return new GramJs.InputPrivacyKeyStatusTimestamp();
 
-    case 'profilePhoto':
+    case "profilePhoto":
       return new GramJs.InputPrivacyKeyProfilePhoto();
 
-    case 'forwards':
+    case "forwards":
       return new GramJs.InputPrivacyKeyForwards();
 
-    case 'chatInvite':
+    case "chatInvite":
       return new GramJs.InputPrivacyKeyChatInvite();
 
-    case 'phoneCall':
+    case "phoneCall":
       return new GramJs.InputPrivacyKeyPhoneCall();
 
-    case 'phoneP2P':
+    case "phoneP2P":
       return new GramJs.InputPrivacyKeyPhoneP2P();
 
-    case 'voiceMessages':
+    case "voiceMessages":
       return new GramJs.InputPrivacyKeyVoiceMessages();
 
-    case 'bio':
+    case "bio":
       return new GramJs.InputPrivacyKeyAbout();
 
-    case 'birthday':
+    case "birthday":
       return new GramJs.InputPrivacyKeyBirthday();
 
-    case 'gifts':
+    case "gifts":
       return new GramJs.InputPrivacyKeyStarGiftsAutoSave();
   }
 
@@ -482,25 +505,25 @@ export function buildInputPrivacyKey(privacyKey: ApiPrivacyKey) {
 
 export function buildInputReportReason(reason: ApiReportReason) {
   switch (reason) {
-    case 'spam':
+    case "spam":
       return new GramJs.InputReportReasonSpam();
-    case 'violence':
+    case "violence":
       return new GramJs.InputReportReasonViolence();
-    case 'childAbuse':
+    case "childAbuse":
       return new GramJs.InputReportReasonChildAbuse();
-    case 'pornography':
+    case "pornography":
       return new GramJs.InputReportReasonPornography();
-    case 'copyright':
+    case "copyright":
       return new GramJs.InputReportReasonCopyright();
-    case 'fake':
+    case "fake":
       return new GramJs.InputReportReasonFake();
-    case 'geoIrrelevant':
+    case "geoIrrelevant":
       return new GramJs.InputReportReasonGeoIrrelevant();
-    case 'illegalDrugs':
+    case "illegalDrugs":
       return new GramJs.InputReportReasonIllegalDrugs();
-    case 'personalDetails':
+    case "personalDetails":
       return new GramJs.InputReportReasonPersonalDetails();
-    case 'other':
+    case "other":
       return new GramJs.InputReportReasonOther();
   }
 
@@ -509,15 +532,15 @@ export function buildInputReportReason(reason: ApiReportReason) {
 
 export function buildSendMessageAction(action: ApiSendMessageAction) {
   switch (action.type) {
-    case 'cancel':
+    case "cancel":
       return new GramJs.SendMessageCancelAction();
-    case 'typing':
+    case "typing":
       return new GramJs.SendMessageTypingAction();
-    case 'recordAudio':
+    case "recordAudio":
       return new GramJs.SendMessageRecordAudioAction();
-    case 'chooseSticker':
+    case "chooseSticker":
       return new GramJs.SendMessageChooseStickerAction();
-    case 'playingGame':
+    case "playingGame":
       return new GramJs.SendMessageGamePlayAction();
   }
   return undefined;
@@ -529,12 +552,12 @@ export function buildInputThemeParams(params: ApiThemeParameters) {
   });
 }
 
-export function buildMtpPeerId(id: string, type: 'user' | 'chat' | 'channel') {
-  if (type === 'user') {
+export function buildMtpPeerId(id: string, type: "user" | "chat" | "channel") {
+  if (type === "user") {
     return BigInt(id);
   }
 
-  if (type === 'channel') {
+  if (type === "channel") {
     return BigInt(id.slice(2)); // Slice "-1", zeroes are trimmed when converting to BigInt
   }
 
@@ -555,9 +578,10 @@ export function buildInputPhoneCall({ id, accessHash }: ApiPhoneCall) {
   });
 }
 
-export function buildInputStorePaymentPurpose(purpose: ApiInputStorePaymentPurpose):
-GramJs.TypeInputStorePaymentPurpose {
-  if (purpose.type === 'stars') {
+export function buildInputStorePaymentPurpose(
+  purpose: ApiInputStorePaymentPurpose
+): GramJs.TypeInputStorePaymentPurpose {
+  if (purpose.type === "stars") {
     return new GramJs.InputStorePaymentStarsTopup({
       stars: BigInt(purpose.stars),
       currency: purpose.currency,
@@ -565,20 +589,28 @@ GramJs.TypeInputStorePaymentPurpose {
     });
   }
 
-  if (purpose.type === 'starsgift') {
+  if (purpose.type === "starsgift") {
     return new GramJs.InputStorePaymentStarsGift({
-      userId: buildInputEntity(purpose.user.id, purpose.user.accessHash) as GramJs.InputUser,
+      userId: buildInputEntity(
+        purpose.user.id,
+        purpose.user.accessHash
+      ) as GramJs.InputUser,
       stars: BigInt(purpose.stars),
       currency: purpose.currency,
       amount: BigInt(purpose.amount),
     });
   }
 
-  if (purpose.type === 'giftcode') {
+  if (purpose.type === "giftcode") {
     return new GramJs.InputStorePaymentPremiumGiftCode({
-      users: purpose.users.map((user) => buildInputEntity(user.id, user.accessHash) as GramJs.InputUser),
+      users: purpose.users.map(
+        (user) => buildInputEntity(user.id, user.accessHash) as GramJs.InputUser
+      ),
       boostPeer: purpose.boostChannel
-        ? buildInputPeer(purpose.boostChannel.id, purpose.boostChannel.accessHash)
+        ? buildInputPeer(
+            purpose.boostChannel.id,
+            purpose.boostChannel.accessHash
+          )
         : undefined,
       currency: purpose.currency,
       amount: BigInt(purpose.amount),
@@ -588,10 +620,12 @@ GramJs.TypeInputStorePaymentPurpose {
 
   const randomId = generateRandomBigInt();
 
-  if (purpose.type === 'starsgiveaway') {
+  if (purpose.type === "starsgiveaway") {
     return new GramJs.InputStorePaymentStarsGiveaway({
       boostPeer: buildInputPeer(purpose.chat.id, purpose.chat.accessHash),
-      additionalPeers: purpose.additionalChannels?.map((chat) => buildInputPeer(chat.id, chat.accessHash)),
+      additionalPeers: purpose.additionalChannels?.map((chat) =>
+        buildInputPeer(chat.id, chat.accessHash)
+      ),
       stars: BigInt(purpose.stars!),
       countriesIso2: purpose.countries,
       prizeDescription: purpose.prizeDescription,
@@ -607,7 +641,9 @@ GramJs.TypeInputStorePaymentPurpose {
 
   return new GramJs.InputStorePaymentPremiumGiveaway({
     boostPeer: buildInputPeer(purpose.chat.id, purpose.chat.accessHash),
-    additionalPeers: purpose.additionalChannels?.map((chat) => buildInputPeer(chat.id, chat.accessHash)),
+    additionalPeers: purpose.additionalChannels?.map((chat) =>
+      buildInputPeer(chat.id, chat.accessHash)
+    ),
     countriesIso2: purpose.countries,
     prizeDescription: purpose.prizeDescription,
     onlyNewSubscribers: purpose.isOnlyForNewSubscribers || undefined,
@@ -630,23 +666,21 @@ function buildPremiumGiftCodeOption(optionData: ApiPremiumGiftCodeOption) {
 
 export function buildInputInvoice(invoice: ApiRequestInputInvoice) {
   switch (invoice.type) {
-    case 'message': {
+    case "message": {
       return new GramJs.InputInvoiceMessage({
         peer: buildInputPeer(invoice.chat.id, invoice.chat.accessHash),
         msgId: invoice.messageId,
       });
     }
 
-    case 'slug': {
+    case "slug": {
       return new GramJs.InputInvoiceSlug({
         slug: invoice.slug,
       });
     }
 
-    case 'stargift': {
-      const {
-        peer, shouldHideName, giftId, message, shouldUpgrade,
-      } = invoice;
+    case "stargift": {
+      const { peer, shouldHideName, giftId, message, shouldUpgrade } = invoice;
       return new GramJs.InputInvoiceStarGift({
         peer: buildInputPeer(peer.id, peer.accessHash),
         hideName: shouldHideName || undefined,
@@ -656,41 +690,34 @@ export function buildInputInvoice(invoice: ApiRequestInputInvoice) {
       });
     }
 
-    case 'stars': {
+    case "stars": {
       const purpose = buildInputStorePaymentPurpose(invoice.purpose);
       return new GramJs.InputInvoiceStars({
         purpose,
       });
     }
 
-    case 'starsgiveaway': {
+    case "starsgiveaway": {
       const purpose = buildInputStorePaymentPurpose(invoice.purpose);
       return new GramJs.InputInvoiceStars({
         purpose,
       });
     }
 
-    case 'chatInviteSubscription': {
+    case "chatInviteSubscription": {
       return new GramJs.InputInvoiceChatInviteSubscription({
         hash: invoice.hash,
       });
     }
 
-    case 'stargiftUpgrade': {
+    case "stargiftUpgrade": {
       return new GramJs.InputInvoiceStarGiftUpgrade({
         stargift: buildInputSavedStarGift(invoice.inputSavedGift),
         keepOriginalDetails: invoice.shouldKeepOriginalDetails,
       });
     }
 
-    case 'stargiftTransfer': {
-      return new GramJs.InputInvoiceStarGiftTransfer({
-        stargift: buildInputSavedStarGift(invoice.inputSavedGift),
-        toId: buildInputPeer(invoice.recipient.id, invoice.recipient.accessHash),
-      });
-    }
-
-    case 'giveaway':
+    case "giveaway":
     default: {
       const purpose = buildInputStorePaymentPurpose(invoice.purpose);
       const option = buildPremiumGiftCodeOption(invoice.option);
@@ -705,15 +732,15 @@ export function buildInputInvoice(invoice: ApiRequestInputInvoice) {
 
 export function buildInputReaction(reaction?: ApiReactionWithPaid) {
   switch (reaction?.type) {
-    case 'emoji':
+    case "emoji":
       return new GramJs.ReactionEmoji({
         emoticon: reaction.emoticon,
       });
-    case 'custom':
+    case "custom":
       return new GramJs.ReactionCustomEmoji({
         documentId: BigInt(reaction.documentId),
       });
-    case 'paid':
+    case "paid":
       return new GramJs.ReactionPaid();
     default:
       return new GramJs.ReactionEmpty();
@@ -721,13 +748,13 @@ export function buildInputReaction(reaction?: ApiReactionWithPaid) {
 }
 
 export function buildInputChatReactions(chatReactions?: ApiChatReactions) {
-  if (chatReactions?.type === 'all') {
+  if (chatReactions?.type === "all") {
     return new GramJs.ChatReactionsAll({
       allowCustom: chatReactions.areCustomAllowed,
     });
   }
 
-  if (chatReactions?.type === 'some') {
+  if (chatReactions?.type === "some") {
     return new GramJs.ChatReactionsSome({
       reactions: chatReactions.allowed.map(buildInputReaction),
     });
@@ -736,21 +763,14 @@ export function buildInputChatReactions(chatReactions?: ApiChatReactions) {
   return new GramJs.ChatReactionsNone();
 }
 
-export function buildInputEmojiStatus(emojiStatus: ApiEmojiStatusType) {
-  if (emojiStatus.type === 'collectible') {
-    return new GramJs.InputEmojiStatusCollectible({
-      collectibleId: BigInt(emojiStatus.collectibleId),
-      until: emojiStatus.until,
-    });
-  }
-
-  if (emojiStatus.documentId === DEFAULT_STATUS_ICON_ID) {
+export function buildInputEmojiStatus(emojiStatusId: string, expires?: number) {
+  if (emojiStatusId === DEFAULT_STATUS_ICON_ID) {
     return new GramJs.EmojiStatusEmpty();
   }
 
   return new GramJs.EmojiStatus({
-    documentId: BigInt(emojiStatus.documentId),
-    until: emojiStatus.until,
+    documentId: BigInt(emojiStatusId),
+    until: expires,
   });
 }
 
@@ -769,21 +789,21 @@ export function buildInputBotApp(app: ApiBotApp) {
 }
 
 export function buildInputReplyTo(replyInfo: ApiInputReplyInfo) {
-  if (replyInfo.type === 'story') {
+  if (replyInfo.type === "story") {
     return new GramJs.InputReplyToStory({
       peer: buildInputPeerFromLocalDb(replyInfo.peerId)!,
       storyId: replyInfo.storyId,
     });
   }
 
-  if (replyInfo.type === 'message') {
-    const {
-      replyToMsgId, replyToTopId, replyToPeerId, quoteText,
-    } = replyInfo;
+  if (replyInfo.type === "message") {
+    const { replyToMsgId, replyToTopId, replyToPeerId, quoteText } = replyInfo;
     return new GramJs.InputReplyToMessage({
       replyToMsgId,
       topMsgId: replyToTopId,
-      replyToPeerId: replyToPeerId ? buildInputPeerFromLocalDb(replyToPeerId)! : undefined,
+      replyToPeerId: replyToPeerId
+        ? buildInputPeerFromLocalDb(replyToPeerId)!
+        : undefined,
       quoteText: quoteText?.text,
       quoteEntities: quoteText?.entities?.map(buildMtpMessageEntity),
     });
@@ -792,62 +812,74 @@ export function buildInputReplyTo(replyInfo: ApiInputReplyInfo) {
   return undefined;
 }
 
-export function buildInputPrivacyRules(
-  rules: ApiInputPrivacyRules,
-) {
+export function buildInputPrivacyRules(rules: ApiInputPrivacyRules) {
   const privacyRules: GramJs.TypeInputPrivacyRule[] = [];
 
   if (rules.allowedUsers?.length) {
-    privacyRules.push(new GramJs.InputPrivacyValueAllowUsers({
-      users: rules.allowedUsers.map(({ id, accessHash }) => buildInputEntity(id, accessHash) as GramJs.InputUser),
-    }));
+    privacyRules.push(
+      new GramJs.InputPrivacyValueAllowUsers({
+        users: rules.allowedUsers.map(
+          ({ id, accessHash }) =>
+            buildInputEntity(id, accessHash) as GramJs.InputUser
+        ),
+      })
+    );
   }
   if (rules.allowedChats?.length) {
-    privacyRules.push(new GramJs.InputPrivacyValueAllowChatParticipants({
-      chats: rules.allowedChats.map(({ id, type }) => (
-        buildMtpPeerId(id, type === 'chatTypeBasicGroup' ? 'chat' : 'channel')
-      )),
-    }));
+    privacyRules.push(
+      new GramJs.InputPrivacyValueAllowChatParticipants({
+        chats: rules.allowedChats.map(({ id, type }) =>
+          buildMtpPeerId(id, type === "chatTypeBasicGroup" ? "chat" : "channel")
+        ),
+      })
+    );
   }
   if (rules.blockedUsers?.length) {
-    privacyRules.push(new GramJs.InputPrivacyValueDisallowUsers({
-      users: rules.blockedUsers.map(({ id, accessHash }) => buildInputEntity(id, accessHash) as GramJs.InputUser),
-    }));
+    privacyRules.push(
+      new GramJs.InputPrivacyValueDisallowUsers({
+        users: rules.blockedUsers.map(
+          ({ id, accessHash }) =>
+            buildInputEntity(id, accessHash) as GramJs.InputUser
+        ),
+      })
+    );
   }
   if (rules.blockedChats?.length) {
-    privacyRules.push(new GramJs.InputPrivacyValueDisallowChatParticipants({
-      chats: rules.blockedChats.map(({ id, type }) => (
-        buildMtpPeerId(id, type === 'chatTypeBasicGroup' ? 'chat' : 'channel')
-      )),
-    }));
+    privacyRules.push(
+      new GramJs.InputPrivacyValueDisallowChatParticipants({
+        chats: rules.blockedChats.map(({ id, type }) =>
+          buildMtpPeerId(id, type === "chatTypeBasicGroup" ? "chat" : "channel")
+        ),
+      })
+    );
   }
   if (rules.shouldAllowPremium) {
     privacyRules.push(new GramJs.InputPrivacyValueAllowPremium());
   }
 
-  if (rules.botsPrivacy === 'allow') {
+  if (rules.botsPrivacy === "allow") {
     privacyRules.push(new GramJs.InputPrivacyValueAllowBots());
   }
 
-  if (rules.botsPrivacy === 'disallow') {
+  if (rules.botsPrivacy === "disallow") {
     privacyRules.push(new GramJs.InputPrivacyValueDisallowBots());
   }
 
   if (!rules.isUnspecified) {
     switch (rules.visibility) {
-      case 'everybody':
+      case "everybody":
         privacyRules.push(new GramJs.InputPrivacyValueAllowAll());
         break;
 
-      case 'contacts':
+      case "contacts":
         privacyRules.push(new GramJs.InputPrivacyValueAllowContacts());
         break;
 
-      case 'nonContacts':
+      case "nonContacts":
         privacyRules.push(new GramJs.InputPrivacyValueDisallowContacts());
         break;
 
-      case 'nobody':
+      case "nobody":
         privacyRules.push(new GramJs.InputPrivacyValueDisallowAll());
         break;
     }
@@ -856,8 +888,10 @@ export function buildInputPrivacyRules(
   return privacyRules;
 }
 
-export function buildInputSavedStarGift(inputGift: ApiRequestInputSavedStarGift) {
-  if (inputGift.type === 'user') {
+export function buildInputSavedStarGift(
+  inputGift: ApiRequestInputSavedStarGift
+) {
+  if (inputGift.type === "user") {
     return new GramJs.InputSavedStarGiftUser({
       msgId: inputGift.messageId,
     });

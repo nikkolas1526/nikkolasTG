@@ -21,7 +21,9 @@
 .has-call-header {
   --call-header-height: 2rem;
 
-  #LeftColumn, #MiddleColumn, #RightColumn-wrapper {
+  #LeftColumn,
+  #MiddleColumn,
+  #RightColumn-wrapper {
     height: calc(100% - var(--call-header-height));
     margin-top: var(--call-header-height);
   }
@@ -29,7 +31,7 @@
 
 #LeftColumn {
   --left-column-min-width: 16rem;
-  --left-column-max-width: 26.5rem;
+  --left-column-max-width: 33rem;
 
   width: 33vw;
   min-width: var(--left-column-min-width);
@@ -41,7 +43,7 @@
   background-color: var(--color-background);
 
   @media (min-width: 926px) {
-    --left-column-max-width: 40vw;
+    --left-column-max-width: 50vw;
   }
 
   @media (min-width: 1276px) {
@@ -64,7 +66,7 @@
     }
 
     &::after {
-      content: '';
+      content: "";
       display: block;
       position: absolute;
       left: 0;
@@ -120,7 +122,7 @@
 
     // Fix: when opening the SymbolMenu, the chat list flashes in the background
     body.is-symbol-menu-open &::before {
-      content: '';
+      content: "";
       position: absolute;
       left: 0;
       right: 0;

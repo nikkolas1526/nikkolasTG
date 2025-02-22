@@ -1,65 +1,76 @@
-import { getGlobal } from '../../global';
+import { getGlobal } from "../../global";
 
-import type { ApiChatFolder } from '../../api/types';
-import type { IconName } from '../../types/icons';
-import type { Dispatch, StateReducer } from '../useReducer';
+import type { ApiChatFolder } from "../../api/types";
+import type { IconName } from "../../types/icons";
+import type { Dispatch, StateReducer } from "../useReducer";
 
-import { selectChat } from '../../global/selectors';
-import { omit, pick } from '../../util/iteratees';
-import useReducer from '../useReducer';
+import { selectChat } from "../../global/selectors";
+import { omit, pick } from "../../util/iteratees";
+import useReducer from "../useReducer";
 
 export type FolderChatType = {
   icon: IconName;
   title: string;
-  key: keyof Pick<ApiChatFolder, (
-    'contacts' | 'nonContacts' | 'groups' | 'channels' | 'bots' |
-    'excludeMuted' | 'excludeArchived' | 'excludeRead'
-  )>;
+  key: keyof Pick<
+    ApiChatFolder,
+    | "contacts"
+    | "nonContacts"
+    | "groups"
+    | "channels"
+    | "bots"
+    | "excludeMuted"
+    | "excludeArchived"
+    | "excludeRead"
+  >;
 };
 
 const INCLUDE_FILTER_FIELDS: Array<keyof FolderIncludeFilters> = [
-  'includedChatIds', 'bots', 'channels', 'groups', 'contacts', 'nonContacts',
+  "includedChatIds",
+  "bots",
+  "channels",
+  "groups",
+  "contacts",
+  "nonContacts",
 ];
 const EXCLUDE_FILTER_FIELDS: Array<keyof FolderExcludeFilters> = [
-  'excludedChatIds', 'excludeArchived', 'excludeMuted', 'excludeRead',
+  "excludedChatIds",
+  "excludeArchived",
+  "excludeMuted",
+  "excludeRead",
 ];
 
-export function selectChatFilters(state: FoldersState, mode: 'included' | 'excluded', selectTemp?: boolean) {
+export function selectChatFilters(
+  state: FoldersState,
+  mode: "included" | "excluded",
+  selectTemp?: boolean
+) {
   let selectedChatIds: string[] = [];
-  let selectedChatTypes: FolderChatType['key'][] = [];
+  let selectedChatTypes: FolderChatType["key"][] = [];
 
-  if (mode === 'included') {
-    const {
-      includedChatIds,
-      ...includeFilters
-    } = selectTemp
+  if (mode === "included") {
+    const { includedChatIds, ...includeFilters } = selectTemp
       ? state.includeFilters || {}
-      : pick(
-        state.folder,
-        INCLUDE_FILTER_FIELDS,
-      );
+      : pick(state.folder, INCLUDE_FILTER_FIELDS);
 
     selectedChatIds = includedChatIds || [];
-    selectedChatTypes = (Object.keys(includeFilters) as Array<keyof typeof includeFilters>)
-      .filter((key) => Boolean(includeFilters[key]));
+    selectedChatTypes = (
+      Object.keys(includeFilters) as Array<keyof typeof includeFilters>
+    ).filter((key) => Boolean(includeFilters[key]));
   } else {
-    const {
-      excludedChatIds,
-      ...excludeFilters
-    } = selectTemp
+    const { excludedChatIds, ...excludeFilters } = selectTemp
       ? state.excludeFilters || {}
-      : pick(
-        state.folder,
-        EXCLUDE_FILTER_FIELDS,
-      );
+      : pick(state.folder, EXCLUDE_FILTER_FIELDS);
 
     selectedChatIds = excludedChatIds || [];
-    selectedChatTypes = (Object.keys(excludeFilters) as Array<keyof typeof excludeFilters>)
-      .filter((key) => Boolean(excludeFilters[key]));
+    selectedChatTypes = (
+      Object.keys(excludeFilters) as Array<keyof typeof excludeFilters>
+    ).filter((key) => Boolean(excludeFilters[key]));
   }
 
   const global = getGlobal();
-  const existingSelectedChatIds = selectedChatIds.filter((id) => selectChat(global, id));
+  const existingSelectedChatIds = selectedChatIds.filter((id) =>
+    selectChat(global, id)
+  );
 
   return {
     selectedChatIds: existingSelectedChatIds,
@@ -69,62 +80,78 @@ export function selectChatFilters(state: FoldersState, mode: 'included' | 'exclu
 
 function getSuggestedFolderName(includeFilters?: FolderIncludeFilters) {
   if (includeFilters) {
-    const {
-      includedChatIds,
-      ...filters
-    } = includeFilters;
+    const { includedChatIds, ...filters } = includeFilters;
 
     if (
-      Object.values(filters).filter(Boolean).length > 1
-      || (includedChatIds?.length)
+      Object.values(filters).filter(Boolean).length > 1 ||
+      includedChatIds?.length
     ) {
-      return '';
+      return "";
     }
 
     if (filters.bots) {
-      return 'Bots';
+      return "Bots";
     } else if (filters.groups) {
-      return 'Groups';
+      return "Groups";
     } else if (filters.channels) {
-      return 'Channels';
+      return "Channels";
     } else if (filters.contacts) {
-      return 'Contacts';
+      return "Contacts";
     } else if (filters.nonContacts) {
-      return 'Non-Contacts';
+      return "Non-Contacts";
     }
   }
 
-  return '';
+  return "";
 }
 
-type FolderIncludeFilters = Pick<ApiChatFolder, (
-  'includedChatIds' | 'bots' | 'channels' | 'groups' | 'contacts' | 'nonContacts'
-)>;
-type FolderExcludeFilters = Pick<ApiChatFolder, 'excludedChatIds' | 'excludeArchived' | 'excludeMuted' | 'excludeRead'>;
+type FolderIncludeFilters = Pick<
+  ApiChatFolder,
+  | "includedChatIds"
+  | "bots"
+  | "channels"
+  | "groups"
+  | "contacts"
+  | "nonContacts"
+>;
+type FolderExcludeFilters = Pick<
+  ApiChatFolder,
+  "excludedChatIds" | "excludeArchived" | "excludeMuted" | "excludeRead"
+>;
 
 export type FoldersState = {
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   isLoading?: boolean;
   isTouched?: boolean;
   error?: string;
   folderId?: number;
   chatFilter: string;
-  folder: Omit<ApiChatFolder, 'id' | 'description' | 'emoticon'>;
+  folder: Omit<ApiChatFolder, "id" | "description" | "emoticon">;
   includeFilters?: FolderIncludeFilters;
   excludeFilters?: FolderExcludeFilters;
 };
-export type FoldersActions = (
-  'setTitle' | 'saveFilters' | 'editFolder' | 'reset' | 'setChatFilter' | 'setIsLoading' | 'setError' |
-  'editIncludeFilters' | 'editExcludeFilters' | 'setIncludeFilters' | 'setExcludeFilters' | 'setIsTouched' |
-  'setFolderId' | 'setIsChatlist'
-  );
+export type FoldersActions =
+  | "setTitle"
+  | "saveFilters"
+  | "editFolder"
+  | "reset"
+  | "setChatFilter"
+  | "setIsLoading"
+  | "setError"
+  | "editIncludeFilters"
+  | "editExcludeFilters"
+  | "setIncludeFilters"
+  | "setExcludeFilters"
+  | "setIsTouched"
+  | "setFolderId"
+  | "setIsChatlist";
 export type FolderEditDispatch = Dispatch<FoldersState, FoldersActions>;
 
 const INITIAL_STATE: FoldersState = {
-  mode: 'create',
-  chatFilter: '',
+  mode: "create",
+  chatFilter: "",
   folder: {
-    title: { text: '' },
+    title: { text: "" },
     includedChatIds: [],
     excludedChatIds: [],
   },
@@ -132,10 +159,10 @@ const INITIAL_STATE: FoldersState = {
 
 const foldersReducer: StateReducer<FoldersState, FoldersActions> = (
   state,
-  action,
+  action
 ): FoldersState => {
   switch (action.type) {
-    case 'setTitle':
+    case "setTitle":
       return {
         ...state,
         folder: {
@@ -144,51 +171,47 @@ const foldersReducer: StateReducer<FoldersState, FoldersActions> = (
         },
         isTouched: true,
       };
-    case 'setFolderId':
+    case "setFolderId":
       return {
         ...state,
         folderId: action.payload,
-        mode: 'edit',
+        mode: "edit",
       };
-    case 'editIncludeFilters':
+    case "editIncludeFilters":
       return {
         ...state,
-        includeFilters: pick(
-          state.folder,
-          INCLUDE_FILTER_FIELDS,
-        ),
+        includeFilters: pick(state.folder, INCLUDE_FILTER_FIELDS),
       };
-    case 'editExcludeFilters':
+    case "editExcludeFilters":
       return {
         ...state,
-        excludeFilters: pick(
-          state.folder,
-          EXCLUDE_FILTER_FIELDS,
-        ),
+        excludeFilters: pick(state.folder, EXCLUDE_FILTER_FIELDS),
       };
-    case 'setIncludeFilters':
+    case "setIncludeFilters":
       return {
         ...state,
         includeFilters: action.payload,
-        chatFilter: '',
+        chatFilter: "",
       };
-    case 'setExcludeFilters':
+    case "setExcludeFilters":
       return {
         ...state,
         excludeFilters: action.payload,
-        chatFilter: '',
+        chatFilter: "",
       };
-    case 'saveFilters':
+    case "saveFilters":
       if (state.includeFilters) {
         return {
           ...state,
           folder: {
             ...omit(state.folder, INCLUDE_FILTER_FIELDS),
-            title: state.folder.title ? state.folder.title : { text: getSuggestedFolderName(state.includeFilters) },
+            title: state.folder.title
+              ? state.folder.title
+              : { text: getSuggestedFolderName(state.includeFilters) },
             ...state.includeFilters,
           },
           includeFilters: undefined,
-          chatFilter: '',
+          chatFilter: "",
           isTouched: true,
         };
       } else if (state.excludeFilters) {
@@ -199,48 +222,48 @@ const foldersReducer: StateReducer<FoldersState, FoldersActions> = (
             ...state.excludeFilters,
           },
           excludeFilters: undefined,
-          chatFilter: '',
+          chatFilter: "",
           isTouched: true,
         };
       } else {
         return state;
       }
-    case 'editFolder': {
+    case "editFolder": {
       const { id: folderId, description, ...folder } = action.payload;
 
       return {
-        mode: 'edit',
+        mode: "edit",
         folderId,
         folder,
-        chatFilter: '',
+        chatFilter: "",
       };
     }
-    case 'setChatFilter': {
+    case "setChatFilter": {
       return {
         ...state,
         chatFilter: action.payload,
       };
     }
-    case 'setIsTouched': {
+    case "setIsTouched": {
       return {
         ...state,
         isTouched: action.payload,
       };
     }
-    case 'setIsLoading': {
+    case "setIsLoading": {
       return {
         ...state,
         isLoading: action.payload,
       };
     }
-    case 'setError': {
+    case "setError": {
       return {
         ...state,
         isLoading: false,
         error: action.payload,
       };
     }
-    case 'setIsChatlist':
+    case "setIsChatlist":
       return {
         ...state,
         folder: {
@@ -248,7 +271,7 @@ const foldersReducer: StateReducer<FoldersState, FoldersActions> = (
           isChatList: action.payload,
         },
       };
-    case 'reset':
+    case "reset":
       return INITIAL_STATE;
     default:
       return state;

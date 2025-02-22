@@ -1,24 +1,24 @@
-import { getGlobal } from '../../../global';
+import { getGlobal } from "../../../global";
 
-import type { ApiMessage, ApiSponsoredMessage } from '../../../api/types';
-import type { OldLangFn } from '../../../hooks/useOldLang';
-import type { TextPart } from '../../../types';
-import { ApiMessageEntityTypes } from '../../../api/types';
+import type { ApiMessage, ApiSponsoredMessage } from "../../../api/types";
+import type { OldLangFn } from "../../../hooks/useOldLang";
+import type { TextPart } from "../../../types";
+import { ApiMessageEntityTypes } from "../../../api/types";
 
 import {
   getMessageStatefulContent,
   getMessageText,
-} from '../../../global/helpers';
+} from "../../../global/helpers";
 import {
   getMessageSummaryDescription,
   getMessageSummaryEmoji,
   getMessageSummaryText,
   TRUNCATED_SUMMARY_LENGTH,
-} from '../../../global/helpers/messageSummary';
-import { getMessageKey } from '../../../util/keys/messageKey';
-import trimText from '../../../util/trimText';
-import renderText from './renderText';
-import { renderTextWithEntities } from './renderTextWithEntities';
+} from "../../../global/helpers/messageSummary";
+import { getMessageKey } from "../../../util/keys/messageKey";
+import trimText from "../../../util/trimText";
+import renderText from "./renderText";
+import { renderTextWithEntities } from "./renderTextWithEntities";
 
 export function renderMessageText({
   message,
@@ -30,7 +30,7 @@ export function renderMessageText({
   forcePlayback,
   shouldRenderAsHtml,
   isForMediaViewer,
-} : {
+}: {
   message: ApiMessage | ApiSponsoredMessage;
   highlight?: string;
   emojiSize?: number;
@@ -45,7 +45,9 @@ export function renderMessageText({
 
   if (!text) {
     const contentNotSupportedText = getMessageText(message);
-    return contentNotSupportedText ? [trimText(contentNotSupportedText, truncateLength)] : undefined;
+    return contentNotSupportedText
+      ? [trimText(contentNotSupportedText, truncateLength)]
+      : undefined;
   }
 
   const messageKey = getMessageKey(message);
@@ -56,7 +58,7 @@ export function renderMessageText({
     highlight,
     emojiSize,
     shouldRenderAsHtml,
-    containerId: `${isForMediaViewer ? 'mv-' : ''}${messageKey}`,
+    containerId: `${isForMediaViewer ? "mv-" : ""}${messageKey}`,
     isSimple,
     isProtected,
     forcePlayback,
@@ -69,32 +71,47 @@ export function renderMessageSummary(
   message: ApiMessage,
   noEmoji = false,
   highlight?: string,
-  truncateLength = TRUNCATED_SUMMARY_LENGTH,
+  truncateLength = TRUNCATED_SUMMARY_LENGTH
 ): TextPart[] {
   const { entities } = message.content.text || {};
 
   const global = getGlobal();
   const statefulContent = getMessageStatefulContent(global, message);
 
-  const hasSpoilers = entities?.some((e) => e.type === ApiMessageEntityTypes.Spoiler);
-  const hasCustomEmoji = entities?.some((e) => e.type === ApiMessageEntityTypes.CustomEmoji);
+  const hasSpoilers = entities?.some(
+    (e) => e.type === ApiMessageEntityTypes.Spoiler
+  );
+  const hasCustomEmoji = entities?.some(
+    (e) => e.type === ApiMessageEntityTypes.CustomEmoji
+  );
   if (!hasSpoilers && !hasCustomEmoji) {
-    const text = trimText(getMessageSummaryText(lang, message, statefulContent, noEmoji), truncateLength);
+    const text = trimText(
+      getMessageSummaryText(lang, message, statefulContent, noEmoji),
+      truncateLength
+    );
 
     if (highlight) {
-      return renderText(text, ['emoji', 'highlight'], { highlight });
+      return renderText(text, ["emoji", "highlight"], { highlight });
     } else {
       return renderText(text);
     }
   }
 
   const emoji = !noEmoji && getMessageSummaryEmoji(message);
-  const emojiWithSpace = emoji ? `${emoji} ` : '';
+  const emojiWithSpace = emoji ? `${emoji} ` : "";
 
   const text = renderMessageText({
-    message, highlight, isSimple: true, truncateLength,
+    message,
+    highlight,
+    isSimple: true,
+    truncateLength,
   });
-  const description = getMessageSummaryDescription(lang, message, statefulContent, text);
+  const description = getMessageSummaryDescription(
+    lang,
+    message,
+    statefulContent,
+    text
+  );
 
   return [
     ...renderText(emojiWithSpace),

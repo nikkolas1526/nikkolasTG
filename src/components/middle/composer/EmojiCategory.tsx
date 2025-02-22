@@ -1,19 +1,19 @@
-import type { FC } from '../../../lib/teact/teact';
-import React, { memo, useRef } from '../../../lib/teact/teact';
+import type { FC } from "../../../lib/teact/teact";
+import React, { memo, useRef } from "../../../lib/teact/teact";
 
-import type { ObserveFn } from '../../../hooks/useIntersectionObserver';
+import type { ObserveFn } from "../../../hooks/useIntersectionObserver";
 
-import { EMOJI_SIZE_PICKER, RECENT_SYMBOL_SET_ID } from '../../../config';
-import buildClassName from '../../../util/buildClassName';
-import windowSize from '../../../util/windowSize';
-import { REM } from '../../common/helpers/mediaDimensions';
+import { EMOJI_SIZE_PICKER, RECENT_SYMBOL_SET_ID } from "../../../config";
+import buildClassName from "../../../util/buildClassName";
+import windowSize from "../../../util/windowSize";
+import { REM } from "../../common/helpers/mediaDimensions";
 
-import useAppLayout from '../../../hooks/useAppLayout';
-import { useOnIntersect } from '../../../hooks/useIntersectionObserver';
-import useMediaTransitionDeprecated from '../../../hooks/useMediaTransitionDeprecated';
-import useOldLang from '../../../hooks/useOldLang';
+import useAppLayout from "../../../hooks/useAppLayout";
+import { useOnIntersect } from "../../../hooks/useIntersectionObserver";
+import useMediaTransitionDeprecated from "../../../hooks/useMediaTransitionDeprecated";
+import useOldLang from "../../../hooks/useOldLang";
 
-import EmojiButton from './EmojiButton';
+import EmojiButton from "./EmojiButton";
 
 const EMOJIS_PER_ROW_ON_DESKTOP = 8;
 const EMOJI_MARGIN = 0.625 * REM;
@@ -31,7 +31,12 @@ type OwnProps = {
 };
 
 const EmojiCategory: FC<OwnProps> = ({
-  category, index, allEmojis, observeIntersection, shouldRender, onEmojiSelect,
+  category,
+  index,
+  allEmojis,
+  observeIntersection,
+  shouldRender,
+  onEmojiSelect,
 }) => {
   // eslint-disable-next-line no-null/no-null
   const ref = useRef<HTMLDivElement>(null);
@@ -45,11 +50,14 @@ const EmojiCategory: FC<OwnProps> = ({
 
   const emojisPerRow = isMobile
     ? Math.floor(
-      (windowSize.get().width - MOBILE_CONTAINER_PADDING + EMOJI_MARGIN) / (EMOJI_SIZE_PICKER + EMOJI_MARGIN),
-    )
+        (windowSize.get().width - MOBILE_CONTAINER_PADDING + EMOJI_MARGIN) /
+          (EMOJI_SIZE_PICKER + EMOJI_MARGIN)
+      )
     : EMOJIS_PER_ROW_ON_DESKTOP;
-  const height = Math.ceil(category.emojis.length / emojisPerRow)
-    * (EMOJI_SIZE_PICKER + (isMobile ? EMOJI_VERTICAL_MARGIN_MOBILE : EMOJI_VERTICAL_MARGIN));
+  const height =
+    Math.ceil(category.emojis.length / emojisPerRow) *
+    (EMOJI_SIZE_PICKER +
+      (isMobile ? EMOJI_VERTICAL_MARGIN_MOBILE : EMOJI_VERTICAL_MARGIN));
 
   return (
     <div
@@ -60,32 +68,37 @@ const EmojiCategory: FC<OwnProps> = ({
     >
       <div className="symbol-set-header">
         <p className="symbol-set-name" dir="auto">
-          {lang(category.id === RECENT_SYMBOL_SET_ID ? 'RecentStickers' : `Emoji${index}`)}
+          {lang(
+            category.id === RECENT_SYMBOL_SET_ID
+              ? "RecentStickers"
+              : `Emoji${index}`
+          )}
         </p>
       </div>
       <div
-        className={buildClassName('symbol-set-container', transitionClassNames)}
+        className={buildClassName("symbol-set-container", transitionClassNames)}
         style={`height: ${height}px;`}
-        dir={lang.isRtl ? 'rtl' : undefined}
+        dir={lang.isRtl ? "rtl" : undefined}
       >
-        {shouldRender && category.emojis.map((name) => {
-          const emoji = allEmojis[name];
-          // Recent emojis may contain emoticons that are no longer in the list
-          if (!emoji) {
-            return undefined;
-          }
-          // Some emojis have multiple skins and are represented as an Object with emojis for all skins.
-          // For now, we select only the first emoji with 'neutral' skin.
-          const displayedEmoji = 'id' in emoji ? emoji : emoji[1];
+        {shouldRender &&
+          category.emojis.map((name) => {
+            const emoji = allEmojis[name];
+            // Recent emojis may contain emoticons that are no longer in the list
+            if (!emoji) {
+              return undefined;
+            }
+            // Some emojis have multiple skins and are represented as an Object with emojis for all skins.
+            // For now, we select only the first emoji with 'neutral' skin.
+            const displayedEmoji = "id" in emoji ? emoji : emoji[1];
 
-          return (
-            <EmojiButton
-              key={displayedEmoji.id}
-              emoji={displayedEmoji}
-              onClick={onEmojiSelect}
-            />
-          );
-        })}
+            return (
+              <EmojiButton
+                key={displayedEmoji.id}
+                emoji={displayedEmoji}
+                onClick={onEmojiSelect}
+              />
+            );
+          })}
       </div>
     </div>
   );
